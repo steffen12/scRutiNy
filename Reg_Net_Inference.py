@@ -1,5 +1,4 @@
 import rpy2.robjects as robjects
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats.mstats as scp
@@ -12,6 +11,9 @@ import seaborn as sns
 #import plotly
 import datetime
 import random
+import math
+import os
+
 from sklearn.manifold import TSNE
 from sklearn.linear_model import Lasso
 from sklearn.neural_network import MLPRegressor
@@ -168,7 +170,6 @@ def smoothCellData(cells, windowSize, cellStates, pseudotimes):
 			windowEnd = cells
 		for k in range(windowStart, windowEnd):
 			pseudotimeWindowIndexes.append(pseudotimeOrderedIndexes[k])
-		print("Pseudotime Window Indexes: ", pseudotimeWindowIndexes)
 		cellStatesSmooth[:, pseudotimeOriginalIndex] = np.mean(cellStates[:, pseudotimeWindowIndexes], axis=1)
 	return(cellStatesSmooth)
 
@@ -304,6 +305,8 @@ def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeT
 				y[cellPairIndexOffset + cellPairIndex] = expProd[gene] - expProdMeans[gene]
 				data[cellPairIndexOffset + cellPairIndex, :] = Sc2 - geneMeans
 		cellPairIndexOffset += len(cellPairs)
+		print("Data: ", data)
+		print("y: ", y)
 		reg_result = lasso_regression(data, y, alpha)#neural_network(n, data, y, alpha)#linear_reg(data, y)#
 		#print("Gene ", gene, " RSS: ", reg_result[0])
 		#print("Expected Cost: ", np.sum((y - np.dot(data, np.transpose(W_real[gene, :])))**2))
@@ -391,7 +394,7 @@ def clusterGenes(n, cells, cellStates):
 	#specClust =  SpectralClustering(n_clusters=numClusters, affinity="precomputed", n_neighbors=numNeighbors).fit(distanceMatrix)
 	#labels = specClust.labels_
 
-	print(labels)
+	print("Gene Clusters: ", labels)
 	newClustNumber = max(labels) + 1
 	if min(labels) == -1: #There are noise labels
 		for i in range(len(labels)):
@@ -414,7 +417,7 @@ def clusterGenes(n, cells, cellStates):
 	sc = ax.scatter(tsneResult[:,0], tsneResult[:,1], lw=0, s=40, c=palette[labels.astype(np.int)])
 	ax.axis('off')
 	ax.axis('tight')
-	plt.show()
+	#plt.show()
 
 	return(labels)
 
@@ -737,10 +740,13 @@ def plotGeneOverPseudotime(gene, pseudotimes, cellStates):
 	plt.show()
 
 def main():
+	targetDirectory = "/home/steffen12/NIH_Internship/"
+	os.chdir(targetDirectory)
+
 	alphaMax = 1e-1
 	alphaMin = 1e-3
 	alphaMultStep = 1.0/2
-	pseudotimeThresh = 0.20
+	pseudotimeThresh = 0.10 #0,20
 	numCVPartitions = 5
 	windowSize = 100
 	#pseudotimeOffset = 0 #Make this as small as can be
@@ -748,6 +754,7 @@ def main():
 	n, cells, cellStates, pseudotimes, cellTypesRecord, W_real = readCellStates()
 	print("Num genes: ", n, ", num cells: ", cells)
 	print("Num TF Connections: ", np.flatnonzero(W_real).size)
+	print("Pseudotimes: ", pseudotimes)
 
 	cellStates = smoothCellData(cells, windowSize, cellStates, pseudotimes)
 
