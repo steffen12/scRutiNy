@@ -164,11 +164,11 @@ def analyzeNetworkStructure(n, networkMatrix, networkStructure, saveFolder):
 	sparsityProportion = float(np.count_nonzero(networkMatrix.flatten())) / (n**2)
 	print("Network Density: ", sparsityProportion)
 
-# def generateCellTypeDynamics(cellTypeParents, cellTypeConstProbs, cellTypeNumCells, transcriptionFactors, cellTypeMeans):
-# 	cellTypeTree = formCellTypeTree(cellTypeParents, cellTypeNumCells, cellTypeConstProbs, transcriptionFactors, cellTypeMeans)
+# def generateCellTypeDynamics(cellTypeParents, cellTypeConstProps, cellTypeNumCells, transcriptionFactors, cellTypeMeans):
+# 	cellTypeTree = formCellTypeTree(cellTypeParents, cellTypeNumCells, cellTypeConstProps, transcriptionFactors, cellTypeMeans)
 # 	return(n, cells, cellTypeTree)
 
-def formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstProbs, transcriptionFactors, cellTypeMeans):
+def formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstProps, transcriptionFactors, cellTypeMeans):
 	cellTypeTree = Tree()
 
 	parentCellType = -1
@@ -195,7 +195,7 @@ def formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstP
 		cellTypeMembers[cellType] = cellTypeIndices
 		cellNumPool = list(set(cellNumPool) - set(cellTypeIndices))
 
-	addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers, cellTypeConstProbs, projInit, constInit, projMatrix, constMatrix, cellTypeMeans, parentCellType, transcriptionFactors)
+	addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers, cellTypeConstProps, projInit, constInit, projMatrix, constMatrix, cellTypeMeans, parentCellType, transcriptionFactors)
 	
 	#maxCellType = int(max(cellTypeParents)) #Highest cell type number corresponds to the highest cell type
 	for node in cellTypeTree.traverse(-1):
@@ -204,15 +204,15 @@ def formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstP
 
 	return cellTypeTree, projMatrix, constMatrix
 
-def addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers, cellTypeConstProbs, projInit, constInit, projMatrix, constMatrix, cellTypeMeans, parentCellType, transcriptionFactors):
+def addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers, cellTypeConstProps, projInit, constInit, projMatrix, constMatrix, cellTypeMeans, parentCellType, transcriptionFactors):
 	childCellTypes = np.where(np.array(cellTypeParents) == parentCellType)[0]
 	#print("Child Clusters: ", childClusters)
 	parentCellTypeMember = []
 	for i in range(len(childCellTypes)):
 		childCellType = childCellTypes[i]
 
-		constProb = cellTypeConstProbs[childCellType]
-		proj, const = getNextProjConst(n, projInit, constInit, constProb, transcriptionFactors)
+		constProp = cellTypeConstProps[childCellType]
+		proj, const = getNextProjConst(n, projInit, constInit, constProp, transcriptionFactors)
 		cellTypeMean = cellTypeMeans[childCellType]
 		cellTypeMember = cellTypeMembers[childCellType]
 
@@ -221,15 +221,15 @@ def addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers, cellTypeC
 
 		cellTypeNode = cellTypeTree.add_node(childCellType, cellTypeMember, const, proj, cellTypeMean, parentCellType)
 
-		childCellTypeMember = addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers, cellTypeConstProbs, proj, const, projMatrix, constMatrix, cellTypeMeans, childCellType, transcriptionFactors)
+		childCellTypeMember = addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers, cellTypeConstProps, proj, const, projMatrix, constMatrix, cellTypeMeans, childCellType, transcriptionFactors)
 		parentCellTypeMember += childCellTypeMember
 	cellTypeTree[parentCellType].setChildCellTypeMembers(parentCellTypeMember)
 
 	return parentCellTypeMember + cellTypeMembers[parentCellType]
 
 #Generate projection and constant vectors for next cell type
-def getNextProjConst(n, projInit, constInit, constProb, transcriptionFactors):
-	numZeros = int(len(transcriptionFactors)*constProb) #np.random.binomial(n, constProb, 1)[0]
+def getNextProjConst(n, projInit, constInit, constProp, transcriptionFactors):
+	numZeros = int(len(transcriptionFactors)*constProp) #np.random.binomial(n, constProp, 1)[0]
 	zeroGenes = random.sample(np.ndarray.tolist(transcriptionFactors), numZeros)
 
 	proj = np.copy(projInit)
@@ -753,8 +753,8 @@ def main():
 
 	cellTypeNumCells = [100, 100, 100, 300, 300, 300, 300]
 	cellTypeParents = [-1, 0, 0, 1, 1, 2, 2]
-	cellTypeConstProbs = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
-	cellTypeMeans = [0, 0, 0, 0, 0, 0, 0] #Not inherited
+	cellTypeConstProps = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
+	cellTypeMeans = None #Not inherited, feature not available in current version
 
 	###Step 4 - Choose the mean and cell size mapping parameters:###
 
@@ -764,7 +764,7 @@ def main():
 	shape = 0.35#0.429743565557383
 	rate = 0.19
 
-	#Exp modified mean parameters
+	#Exp modified mean parameters - not available in current version
 	expLambda = 0#0.50
 	geneScale = 0#0.47
 
@@ -816,7 +816,7 @@ def main():
 
 	#Determine important underlying objects
 	n, gc, transcriptionFactors = generateGeneCorrelationMatrix(n, maxAlphaBeta, normalizeWRows, networkStructure, powerLawExponent, networkSparsity, saveFolder)
-	cellTypeTree, projMatrix, constMatrix = formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstProbs, transcriptionFactors, cellTypeMeans)
+	cellTypeTree, projMatrix, constMatrix = formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstProps, transcriptionFactors, cellTypeMeans)
 	#geneMeanLevels = generateGeneMeanLevels(n, expScale)
 
 	initialStates = generateInitialStates(n, cells, geneMeanLevels, sameInitialCell)
