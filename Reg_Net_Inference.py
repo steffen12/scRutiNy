@@ -16,13 +16,13 @@ import os
 
 from sklearn.manifold import TSNE
 from sklearn.linear_model import Lasso
-from sklearn.neural_network import MLPRegressor
+#from sklearn.neural_network import MLPRegressor
 from scipy.stats import spearmanr
 from scipy.stats import rankdata
 from sklearn.cluster import DBSCAN
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.cluster import SpectralClustering
-from sklearn.linear_model import LinearRegression
+#from sklearn.cluster import AgglomerativeClustering
+#from sklearn.cluster import SpectralClustering
+#from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 from collections import Counter
 
@@ -32,16 +32,25 @@ def main():
 	targetDirectory = "/home/steffen12/NIH_Internship/"
 	os.chdir(targetDirectory)
 
+	#Control alpha used in Lasso
 	alphaMax = 1e-1
 	alphaMin = 1e-4
 	alphaMultStep = 1.0/2
+
+	#Control the minimum pseudotime distance between pairs
 	pseudotimeThresh = 0.10 #0,20
+
+	#What fold cross validation should be done?
 	numCVPartitions = 5
+
+	#The size of the sliding window used for averaging states across pseudotime
 	windowSize = 100
+
 	#pseudotimeOffset = 0 #Make this as small as can be
 
 	perplexity = 30
 
+	#DBscan parameters for clustering
 	epsilon = 0.05#2e-4 #1.5
 	min_samples = 3 #7
 
