@@ -33,7 +33,7 @@ def main():
 	os.chdir(targetDirectory)
 
 	alphaMax = 1e-1
-	alphaMin = 1e-3
+	alphaMin = 1e-4
 	alphaMultStep = 1.0/2
 	pseudotimeThresh = 0.10 #0,20
 	numCVPartitions = 5
@@ -296,7 +296,7 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 		alpha = alphaMax
 
 		minMeanSquaredError = float("inf")
-		minMeanSquaredErrorDiff = float("inf")
+		#minMeanSquaredErrorDiff = float("inf")
 		optAlpha = -1
 		optW = -1
 		optW_random = -1
@@ -322,9 +322,9 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 			randomMeanSquaredError = getCVCost(pseudotimeThresh, W_random, cvCellStates, cvPseudotimes, cvCellTypesRecord)
 			print("Random W Mean Squared Error: " , randomMeanSquaredError)
 
-			if((randomMeanSquaredError - meanSquaredError) < (minMeanSquaredErrorDiff)):
+			if(meanSquaredError < minMeanSquaredError):
 				minMeanSquaredError = meanSquaredError
-				minMeanSquaredErrorDiff = (randomMeanSquaredError - meanSquaredError)
+				#minMeanSquaredErrorDiff = (randomMeanSquaredError - meanSquaredError)
 				optAlpha = alpha
 				optSensitivity = sensitivity
 				optSpecificity = specificity
@@ -344,14 +344,14 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 		precisionArray[partition] = optPrecision
 		W_array[:,:,partition] = optW
 
-		W_cluster = getWClusterPred(n, optW, geneClusters)
-		W_real_cluster = getWClusterReal(n, W_real, geneClusters)
-		W_random_cluster = getWClusterPred(n, optW_random, geneClusters)
+		#W_cluster = getWClusterPred(n, optW, geneClusters)
+		#W_real_cluster = getWClusterReal(n, W_real, geneClusters)
+		#W_random_cluster = getWClusterPred(n, optW_random, geneClusters)
 
 		print("Real W ROC:")
-		plotROCCurve(n, W_cluster, W_real_cluster, geneClusters)
+		plotROCCurve(n, optW, W_real, geneClusters)
 		print("Random W ROC:")
-		plotROCCurve(n, W_random_cluster, W_real_cluster, geneClusters)
+		plotROCCurve(n, optW_random, W_real, geneClusters)
 
 	print("Summary Statistics: ")
 	print("Alpha Mean and Sd: ", np.mean(alphaArray), ", ", np.std(alphaArray))
@@ -663,21 +663,8 @@ def compareToRealW(n, W, W_real, geneClusters):
 	falsePositives = 0
 	falseNegatives = 0
 
-	W_cluster = np.zeros(shape=(n, len(geneClustersSet)))
-	for i in range(n):
-		for clusterNum in geneClustersSet:
-			clusterPredictedRegSum = 0
-			for j in range(n):
-				if(geneClusters[j] == clusterNum and W[i,j] != 0):
-					clusterPredictedRegSum += np.abs(W[i,j])
-			W_cluster[i, clusterNum] = clusterPredictedRegSum
-	W_real_cluster = np.zeros(shape=(n, len(geneClustersSet)))
-
-	for i in range(n):
-		for clusterNum in geneClustersSet:
-			for j in range(n):
-				if(geneClusters[j] == clusterNum and W_real[i,j] != 0):
-					W_real_cluster[i, clusterNum] = 1
+	W_cluster = getWClusterPred(n, W, geneClusters)
+	W_real_cluster = getWClusterReal(n, W_real, geneClusters)
 
 	for i in range(n):
 		for clusterNum in geneClustersSet:
@@ -714,22 +701,22 @@ def compareToRealW(n, W, W_real, geneClusters):
 	return(sensitivity, specificity, precision)
 
 def plotROCCurve(n, W, W_real, geneClusters):
-	W_flattened = np.abs(W.flatten())
-	W_real_flattened = np.abs(W_real.flatten())
+	#W_flattened = np.abs(W.flatten())
+	#W_real_flattened = np.abs(W_real.flatten())
 	#W_real_flattened_binary = np.ones(shape=W_real_flattened.shape)
 	#W_real_flattened_binary[np.where(W_real_flattened == 0)] = 0
 	#W_real_flattened_binary = W_real_flattened
-	tpr, fpr = roc_metrics(n, geneClusters, W_real_flattened, W_flattened)
+	tpr, fpr = roc_metrics(n, geneClusters, W_real, W)
 	AUC = metrics.auc(fpr, tpr)
 	print("ROC AUC: ", AUC)
 	plt.plot(fpr, tpr)
 	plt.title("ROC Curve")
 	plt.show()
 
-def roc_metrics(n, geneClusters, W_real_flattened_binary, W_flattened):
+def roc_metrics(n, geneClusters, W_real, W):
 	geneClustersSet = list(set(geneClusters))
-	tprList = [0]
-	fprList = [0]
+	tprList = [1]
+	fprList = [1]
 
 	sensitivity = -1
 	specificity = -1
@@ -739,6 +726,9 @@ def roc_metrics(n, geneClusters, W_real_flattened_binary, W_flattened):
 	trueNegatives = 0
 	falsePositives = 0
 	falseNegatives = 0
+
+	W_flattened = np.abs(getWClusterPred(n, W, geneClusters)).flatten()
+	W_real_flattened_binary = np.abs(getWClusterReal(n, W_real, geneClusters)).flatten()
 
 	steps = 10
 	stepSize = (max(W_flattened) - min(W_flattened)) / steps
@@ -776,8 +766,13 @@ def roc_metrics(n, geneClusters, W_real_flattened_binary, W_flattened):
 			fprList.append(1-specificity)
 		except:
 			print("Error in calculating statistics")
-	tprList.append(1)
-	fprList.append(1)
+
+	tprList.append(0)
+	fprList.append(0)
+
+	tprList = list(reversed(tprList))
+	fprList = list(reversed(fprList))
+
 	return(tprList, fprList)
 
 def showWGraph(n, W):
