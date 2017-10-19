@@ -42,7 +42,7 @@ def main():
 
 	perplexity = 30
 
-	epsilon = 0.01#2e-4 #1.5
+	epsilon = 0.05#2e-4 #1.5
 	min_samples = 3 #7
 
 	n, cells, cellStates, pseudotimes, cellTypesRecord, W_real = readCellStates()
@@ -361,52 +361,6 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 	print("Precision Mean and Sd: ", np.mean(precisionArray), ", ", np.std(precisionArray))
 	print("W Sd: ", np.mean(np.std(W_array, axis=2)))
 
-def lasso_regression(data, y_vals, alpha, models_to_plot={}):
-    #Fit the model
-    lassoreg = Lasso(alpha=alpha, max_iter=1e5, fit_intercept = False)
-    #print("Data: ", data)
-    #print("y_vals: ", y_vals)
-    lassoreg.fit(data, y_vals)
-    y_pred = lassoreg.predict(data)
-    
-    #Check if a plot is to be made for the entered alpha
-    if alpha in models_to_plot:
-        plt.subplot(models_to_plot[alpha])
-        plt.tight_layout()
-        plt.plot(data, y_pred)
-        plt.plot(data, y_vals,'.')
-        plt.title('Plot for alpha: %.3g'%alpha)
-    
-    #Return the result in pre-defined format
-    rss = sum((y_pred-y_vals)**2)
-    ret = [rss]
-    ret.extend([lassoreg.intercept_])
-    ret.extend(lassoreg.coef_)
-    return ret
-
-def linear_reg(data, y_vals):
-	linearreg = LinearRegression(fit_intercept=False, normalize=False, copy_X=True)
-	linearreg.fit(data, y_vals)
-	y_pred = linearreg.predict(data)
-
-	rss = sum((y_pred-y_vals)**2)
-	ret = [rss]
-	ret.extend([linearreg.intercept_])
-	ret.extend(linearreg.coef_)
-	return ret
-
-def neural_network(n, data, y_vals, alpha):
-	neural_net = MLPRegressor(hidden_layer_sizes = 1, alpha=alpha, activation="identity")
-	neural_net.fit(data, y_vals)
-	y_pred = neural_net.predict(data)
-
-	rss = sum((y_pred-y_vals)**2)
-	ret = [rss]
-	ret.extend([neural_net.intercepts_])
-	ret.extend(list(neural_net.coefs_[0] * neural_net.coefs_[1]))
-	print("Neural Network Coefficients: ", neural_net.coefs_[0])
-	return ret
-
 def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeThresh, pseudotimesNew, alpha):
 	#T = np.load("T.npy")#
 	#T = np.zeros(shape=(n,n))#np.random.rand(n,n)#
@@ -539,8 +493,6 @@ def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeT
 				y[cellPairIndexOffset + cellPairIndex] = expProd[gene] - expProdMeans[gene]
 				data[cellPairIndexOffset + cellPairIndex, :] = Sc2 - geneMeans
 		cellPairIndexOffset += len(cellPairs)
-		print("Data: ", data)
-		print("y: ", y)
 		reg_result = lasso_regression(data, y, alpha)#neural_network(n, data, y, alpha)#linear_reg(data, y)#
 		#print("Gene ", gene, " RSS: ", reg_result[0])
 		#print("Expected Cost: ", np.sum((y - np.dot(data, np.transpose(W_real[gene, :])))**2))
@@ -572,6 +524,53 @@ def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeT
 
 	np.save("W", W)
 	return(W)
+
+def lasso_regression(data, y_vals, alpha, models_to_plot={}):
+    #Fit the model
+    lassoreg = Lasso(alpha=alpha, max_iter=1e5, fit_intercept = False)
+    #print("Data: ", data)
+    #print("y_vals: ", y_vals)
+    lassoreg.fit(data, y_vals)
+    y_pred = lassoreg.predict(data)
+    
+    #Check if a plot is to be made for the entered alpha
+    if alpha in models_to_plot:
+        plt.subplot(models_to_plot[alpha])
+        plt.tight_layout()
+        plt.plot(data, y_pred)
+        plt.plot(data, y_vals,'.')
+        plt.title('Plot for alpha: %.3g'%alpha)
+    
+    #Return the result in pre-defined format
+    rss = sum((y_pred-y_vals)**2)
+    ret = [rss]
+    ret.extend([lassoreg.intercept_])
+    ret.extend(lassoreg.coef_)
+    return ret
+
+# def linear_reg(data, y_vals):
+# 	linearreg = LinearRegression(fit_intercept=False, normalize=False, copy_X=True)
+# 	linearreg.fit(data, y_vals)
+# 	y_pred = linearreg.predict(data)
+
+# 	rss = sum((y_pred-y_vals)**2)
+# 	ret = [rss]
+# 	ret.extend([linearreg.intercept_])
+# 	ret.extend(linearreg.coef_)
+# 	return ret
+
+# def neural_network(n, data, y_vals, alpha):
+# 	neural_net = MLPRegressor(hidden_layer_sizes = 1, alpha=alpha, activation="identity")
+# 	neural_net.fit(data, y_vals)
+# 	y_pred = neural_net.predict(data)
+
+# 	rss = sum((y_pred-y_vals)**2)
+# 	ret = [rss]
+# 	ret.extend([neural_net.intercepts_])
+# 	ret.extend(list(neural_net.coefs_[0] * neural_net.coefs_[1]))
+# 	print("Neural Network Coefficients: ", neural_net.coefs_[0])
+# 	return ret
+
 
 def getWClusterPred(n, W, geneClusters):
 	geneClustersSet = list(set(geneClusters))
@@ -673,6 +672,7 @@ def compareToRealW(n, W, W_real, geneClusters):
 					clusterPredictedRegSum += np.abs(W[i,j])
 			W_cluster[i, clusterNum] = clusterPredictedRegSum
 	W_real_cluster = np.zeros(shape=(n, len(geneClustersSet)))
+
 	for i in range(n):
 		for clusterNum in geneClustersSet:
 			for j in range(n):
@@ -686,6 +686,7 @@ def compareToRealW(n, W, W_real, geneClusters):
 			else:
 				predictedVal = 1
 			trueVal = W_real_cluster[i, clusterNum]
+
 			if(predictedVal == 0 and trueVal == 0):
 				trueNegatives += 1
 			elif(predictedVal == 1 and trueVal == 1):
@@ -695,12 +696,14 @@ def compareToRealW(n, W, W_real, geneClusters):
 			elif(predictedVal == 1 and trueVal == 0):
 				falsePositives += 1 
 
+	print("TP: ", truePositives, ". FP: ", falsePositives, ". TN: ", trueNegatives, ". FN: ", falseNegatives, ".")
+
 	try:
-		sensitivity = truePositives / (truePositives + falseNegatives)
-		specificity = trueNegatives / (trueNegatives + falsePositives)
-		precision = truePositives / (truePositives + falsePositives)
-		negativePredictiveValue = trueNegatives / (trueNegatives + falseNegatives)
-		accuracy = (truePositives + trueNegatives) / (truePositives + falseNegatives + trueNegatives + falsePositives)
+		sensitivity = float(truePositives) / (truePositives + falseNegatives)
+		specificity = float(trueNegatives) / (trueNegatives + falsePositives)
+		precision = float(truePositives) / (truePositives + falsePositives)
+		negativePredictiveValue = float(trueNegatives) / (trueNegatives + falseNegatives)
+		accuracy = float(truePositives + trueNegatives) / (truePositives + falseNegatives + trueNegatives + falsePositives)
 
 		print("Sensitivity/Recall: ", sensitivity, ", Specificity: ", specificity)
 		print("Precision: ", precision, ", Negative Predictive Value: ", negativePredictiveValue)
@@ -709,6 +712,19 @@ def compareToRealW(n, W, W_real, geneClusters):
 		print("Error in calculating statistics")
 
 	return(sensitivity, specificity, precision)
+
+def plotROCCurve(n, W, W_real, geneClusters):
+	W_flattened = np.abs(W.flatten())
+	W_real_flattened = np.abs(W_real.flatten())
+	#W_real_flattened_binary = np.ones(shape=W_real_flattened.shape)
+	#W_real_flattened_binary[np.where(W_real_flattened == 0)] = 0
+	#W_real_flattened_binary = W_real_flattened
+	tpr, fpr = roc_metrics(n, geneClusters, W_real_flattened, W_flattened)
+	AUC = metrics.auc(fpr, tpr)
+	print("ROC AUC: ", AUC)
+	plt.plot(fpr, tpr)
+	plt.title("ROC Curve")
+	plt.show()
 
 def roc_metrics(n, geneClusters, W_real_flattened_binary, W_flattened):
 	geneClustersSet = list(set(geneClusters))
@@ -743,12 +759,14 @@ def roc_metrics(n, geneClusters, W_real_flattened_binary, W_flattened):
 				elif(predictedVal == 1 and trueVal == 0):
 					falsePositives += 1 
 
+		print("TP: ", truePositives, ". FP: ", falsePositives, ". TN: ", trueNegatives, ". FN: ", falseNegatives, ".")
+
 		try:
-			sensitivity = truePositives / (truePositives + falseNegatives)
-			specificity = trueNegatives / (trueNegatives + falsePositives)
-			precision = truePositives / (truePositives + falsePositives)
-			negativePredictiveValue = trueNegatives / (trueNegatives + falseNegatives)
-			accuracy = (truePositives + trueNegatives) / (truePositives + falseNegatives + trueNegatives + falsePositives)
+			sensitivity = float(truePositives) / (truePositives + falseNegatives)
+			specificity = float(trueNegatives) / (trueNegatives + falsePositives)
+			precision = float(truePositives) / (truePositives + falsePositives)
+			negativePredictiveValue = float(trueNegatives) / (trueNegatives + falseNegatives)
+			accuracy = float(truePositives + trueNegatives) / (truePositives + falseNegatives + trueNegatives + falsePositives)
 
 			print("Sensitivity/Recall: ", sensitivity, ", Specificity: ", specificity)
 			print("Precision: ", precision, ", Negative Predictive Value: ", negativePredictiveValue)
@@ -761,19 +779,6 @@ def roc_metrics(n, geneClusters, W_real_flattened_binary, W_flattened):
 	tprList.append(1)
 	fprList.append(1)
 	return(tprList, fprList)
-
-def plotROCCurve(n, W, W_real, geneClusters):
-	W_flattened = np.abs(W.flatten())
-	W_real_flattened = np.abs(W_real.flatten())
-	W_real_flattened_binary = np.ones(shape=W_real_flattened.shape)
-	W_real_flattened_binary[np.where(W_real_flattened == 0)] = 0
-	#W_real_flattened_binary = W_real_flattened
-	tpr, fpr = roc_metrics(n, geneClusters, W_real_flattened_binary, W_flattened)
-	AUC = metrics.auc(fpr, tpr)
-	print("ROC AUC: ", AUC)
-	plt.plot(fpr, tpr)
-	plt.title("ROC Curve")
-	plt.show()
 
 def showWGraph(n, W):
 	geneGraph = nx.DiGraph()
