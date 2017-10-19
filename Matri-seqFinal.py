@@ -19,6 +19,151 @@ import math
 import os
 import datetime
 
+def main():
+	###Define Input Parameters###
+
+	###Step 0 - choose a directory to work in###
+	targetDirectory = "/home/steffen12/NIH_Internship/"
+	R_Directory = "/home/steffen12/NIH_Internship/R_files/"
+	os.chdir(targetDirectory)
+
+	###Step 1 - Select the parameters to determine W#
+
+	#n is the number of genes, W will be a nxn matrix
+	n = 200 #19027
+	#cells = 100 #864
+
+	#SimulatedPowerLaw - Simulated power law network with powerLawExponent as parameter
+	#TRRUST - Real network from TRRUST database of transcription factor interactions
+	#Random - Random network with networkSparsity as a parameter
+
+	networkStructure = "SimulatedPowerLaw"
+
+	powerLawExponent = 2.05 #Increase for more connections, but must stay between 2-3
+	networkSparsity = 0.999
+
+	###Step 2 - Choose the minimum value of alpha (alpha must be greater than or equal to 0)#
+	#and the maximum value of the Beta distribution alpha and beta parameters###
+
+	initialAlpha = 1 #Set to 0 otherwise
+	maxAlphaBeta = 10
+
+	###Choose whether to divide each row of W by the number of connections:###
+
+	normalizeWRows = False
+
+	###Step 3 - Choose the cell development structure:###
+
+	sameInitialCell = True
+	cellDevelopmentMode = True
+
+	cellTypeNumCells = [200] #[100, 100, 100, 300, 300, 300, 300]
+	cellTypeParents = [-1]#[-1, 0, 0, 1, 1, 2, 2]
+	cellTypeConstProps = [0.05] #[0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
+	cellTypeMeans = [0] #Not inherited, feature not available in current version
+
+	###Step 4 - Choose the timeStep, noise, convergence, and iteration sampling parameters:###
+
+	#Controlling gene trajectory smoothness
+	timeStep = 0.01 #0.01
+	noiseDisp = 0.05
+
+	#Parameters to calculate alpha
+	convergenceThreshold = 0.1
+	alphaStep = 0.02 #How much to increase alpha by in each step - DO NOT decrease below 0.01
+	maxNumIterations = 500
+	cellsToSample = 50 #How many cells to sample - must be less than num cells
+	convDistAvgNum = 20
+
+	###Step 5 - Choose the mean and cell size mapping parameters:###
+
+	#Select exponential base
+	expScale = 1#4#6.81
+
+	#Select whether to use a Gamma distributed gene mean or an Exponentially-Modified Gaussian gene mean
+	#Option must be set to True in current version
+	gammaDistMean = True
+
+	#Gamma mean parameters
+	shape = 0.35#0.429743565557383
+	rate = 0.19
+
+	#Exp modified mean parameters - not available in current version
+	expLambda = 0#0.50
+	geneScale = 0#0.47
+
+	#Select cell size distribution
+	cellRadiusDisp = 0.14
+
+	###(Optional) Step 6 - Optional loading and graphing parameters###
+	loadData = False
+	showCellPlots = False
+	showAlphaGeneMeans = False
+	saveFolder = None #Set to None if you want to make it dynamic
+	randomSeed = 393#123
+
+	###Unused parameters###
+	dropoutProportion = 0.0
+	perplexityParam = 30
+
+
+	###Start running commands###
+
+	#Initialize variables
+	cells = sum(cellTypeNumCells)
+	cellTypesRecord = np.zeros(shape=cells, dtype="int64")
+	totalCellIterations = np.zeros(shape=cells, dtype="int64")
+	maxNumIterations = maxNumIterations + convDistAvgNum
+
+	#Make folder for results
+	if saveFolder == None:
+		saveFolder = makeFolder(n, cells)
+
+	#Set environment
+	np.random.seed(randomSeed)
+	random.seed(randomSeed)
+	np.set_printoptions(threshold=20)
+
+	#Determine important underlying objects
+	n, gc, transcriptionFactors = generateGeneCorrelationMatrix(n, maxAlphaBeta, normalizeWRows, networkStructure, powerLawExponent, networkSparsity, saveFolder)
+	geneMeanLevels = np.zeros(shape=n) #Unused in current version
+	cellTypeTree, projMatrix, constMatrix = formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstProps, transcriptionFactors, cellTypeMeans)
+	#geneMeanLevels = generateGeneMeanLevels(n, expScale)
+
+	initialStates = generateInitialStates(n, cells, geneMeanLevels, sameInitialCell)
+	print("Initial States: ", initialStates)
+	#alpha determined based on optimal development for progenitor cell type (parent = -1)
+	alpha = findOptimalAlpha(n, gc, timeStep, cellTypeTree, geneMeanLevels, convergenceThreshold, noiseDisp, initialStates, maxNumIterations, convDistAvgNum, cellsToSample, initialAlpha, alphaStep, showAlphaGeneMeans)
+	gc = gc / alpha #Update gc with new alpha
+	print("Alpha: ", alpha)
+
+	if(loadData):
+		gc = loadSavedData()
+	print("Loaded Data: ", loadData)
+	print("GC :", gc)
+
+	#currentStates = developInitialStates(n, cells, initialStates, gc, timeStep, iterations, cellTypesRecord, totalCellIterations, projMatrix, constMatrix, noiseDisp, geneMeanLevels, showCellPlots, keepProportion, currentCellSplit, numCellSplits, cellDevelopmentMode)
+	#print("Branch 0 Iterations: ", iterations)
+	#print("Current State at Branch 0: \n", currentStates)
+	#np.save("initialDevelopedStates_saved", currentStates)
+
+	currentStates = initialStates
+	#findAllNextStates recurses over cell type tree and develops cells
+	findAllNextStates(gc, n, timeStep, cellTypeTree.head(), cellTypeTree, currentStates, cellTypesRecord, noiseDisp, convergenceThreshold, maxNumIterations, convDistAvgNum, cellsToSample, geneMeanLevels, showCellPlots, cellDevelopmentMode, totalCellIterations)
+	finalCellStates = currentStates
+	print("Final Cell States Before Transformations: \n", finalCellStates)
+
+	cellSizeFactors = np.zeros(shape=cells)
+	pseudotimes = timeStep * totalCellIterations
+	randomGenes = np.random.randint(0, n, size=5)
+	analyzeDataBeforeTransformation(n, cells, finalCellStates, saveFolder, alpha, randomGenes, pseudotimes, networkStructure)
+	finalCellStates, cellSizeFactors = transformData(n, cells, finalCellStates, dropoutProportion, cellRadiusDisp, geneScale, expScale, expLambda, saveFolder, shape, rate, gammaDistMean)
+	print("Final States After Transformations: \n", finalCellStates)
+
+	saveData(finalCellStates, cellTypesRecord, gc, projMatrix, constMatrix, cellSizeFactors, pseudotimes, saveFolder, targetDirectory, R_Directory)
+	analyzeSCRNAseqData(n, cells, perplexityParam, cellTypesRecord, finalCellStates, saveFolder)
+
+
 #Method for later on when the R scripts can interface well the the Python Script
 
 # def loadRInputs(R_Directory):
@@ -717,150 +862,5 @@ def saveData(synthscRNAseq, cellTypesRecord, gc, projMatrix, constMatrix, cellSi
 		r(rSaveString)
 		rSaveString = "save(" + itemNames[i] + ", file='" + R_Directory + ".gzip', compress=TRUE)"
 		r(rSaveString)
-
-def main():
-	###Define Input Parameters###
-
-	###Step 0 - choose a directory to work in###
-	targetDirectory = "/home/steffen12/NIH_Internship/"
-	R_Directory = "/home/steffen12/NIH_Internship/R_files/"
-	os.chdir(targetDirectory)
-
-	###Step 1 - Select the parameters to determine W#
-
-	#n is the number of genes, W will be a nxn matrix
-	n = 200 #19027
-	#cells = 100 #864
-
-	#SimulatedPowerLaw - Simulated power law network with powerLawExponent as parameter
-	#TRRUST - Real network from TRRUST database of transcription factor interactions
-	#Random - Random network with networkSparsity as a parameter
-
-	networkStructure = "TRRUST"
-
-	powerLawExponent = 2.05 #Increase for more connections, but must stay between 2-3
-	networkSparsity = 0.999
-
-	###Step 2 - Choose the minimum value of alpha (alpha must be greater than or equal to 0)#
-	#and the maximum value of the Beta distribution alpha and beta parameters###
-
-	initialAlpha = 1 #Set to 0 otherwise
-	maxAlphaBeta = 10
-
-	###Choose whether to divide each row of W by the number of connections:###
-
-	normalizeWRows = False
-
-	###Step 3 - Choose the cell development structure:###
-
-	sameInitialCell = True
-	cellDevelopmentMode = True
-
-	cellTypeNumCells = [200] #[100, 100, 100, 300, 300, 300, 300]
-	cellTypeParents = [-1]#[-1, 0, 0, 1, 1, 2, 2]
-	cellTypeConstProps = [0.05] #[0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
-	cellTypeMeans = [0] #Not inherited, feature not available in current version
-
-	###Step 4 - Choose the timeStep, noise, convergence, and iteration sampling parameters:###
-
-	#Controlling gene trajectory smoothness
-	timeStep = 0.01 #0.01
-	noiseDisp = 0.05
-
-	#Parameters to calculate alpha
-	convergenceThreshold = 0.1
-	alphaStep = 0.02 #How much to increase alpha by in each step - DO NOT decrease below 0.01
-	maxNumIterations = 500
-	cellsToSample = 50 #How many cells to sample - must be less than num cells
-	convDistAvgNum = 20
-
-	###Step 5 - Choose the mean and cell size mapping parameters:###
-
-	#Select exponential base
-	expScale = 1#4#6.81
-
-	#Select whether to use a Gamma distributed gene mean or an Exponentially-Modified Gaussian gene mean
-	#Option must be set to True in current version
-	gammaDistMean = True
-
-	#Gamma mean parameters
-	shape = 0.35#0.429743565557383
-	rate = 0.19
-
-	#Exp modified mean parameters - not available in current version
-	expLambda = 0#0.50
-	geneScale = 0#0.47
-
-	#Select cell size distribution
-	cellRadiusDisp = 0.14
-
-	###(Optional) Step 6 - Optional loading and graphing parameters###
-	loadData = False
-	showCellPlots = False
-	showAlphaGeneMeans = False
-	saveFolder = None #Set to None if you want to make it dynamic
-	randomSeed = 393#123
-
-	###Unused parameters###
-	dropoutProportion = 0.0
-	perplexityParam = 30
-
-
-	###Start running commands###
-
-	#Initialize variables
-	cells = sum(cellTypeNumCells)
-	cellTypesRecord = np.zeros(shape=cells, dtype="int64")
-	totalCellIterations = np.zeros(shape=cells, dtype="int64")
-	maxNumIterations = maxNumIterations + convDistAvgNum
-
-	#Make folder for results
-	if saveFolder == None:
-		saveFolder = makeFolder(n, cells)
-
-	#Set environment
-	np.random.seed(randomSeed)
-	random.seed(randomSeed)
-	np.set_printoptions(threshold=20)
-
-	#Determine important underlying objects
-	n, gc, transcriptionFactors = generateGeneCorrelationMatrix(n, maxAlphaBeta, normalizeWRows, networkStructure, powerLawExponent, networkSparsity, saveFolder)
-	geneMeanLevels = np.zeros(shape=n) #Unused in current version
-	cellTypeTree, projMatrix, constMatrix = formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstProps, transcriptionFactors, cellTypeMeans)
-	#geneMeanLevels = generateGeneMeanLevels(n, expScale)
-
-	initialStates = generateInitialStates(n, cells, geneMeanLevels, sameInitialCell)
-	print("Initial States: ", initialStates)
-	#alpha determined based on optimal development for progenitor cell type (parent = -1)
-	alpha = findOptimalAlpha(n, gc, timeStep, cellTypeTree, geneMeanLevels, convergenceThreshold, noiseDisp, initialStates, maxNumIterations, convDistAvgNum, cellsToSample, initialAlpha, alphaStep, showAlphaGeneMeans)
-	gc = gc / alpha #Update gc with new alpha
-	print("Alpha: ", alpha)
-
-	if(loadData):
-		gc = loadSavedData()
-	print("Loaded Data: ", loadData)
-	print("GC :", gc)
-
-	#currentStates = developInitialStates(n, cells, initialStates, gc, timeStep, iterations, cellTypesRecord, totalCellIterations, projMatrix, constMatrix, noiseDisp, geneMeanLevels, showCellPlots, keepProportion, currentCellSplit, numCellSplits, cellDevelopmentMode)
-	#print("Branch 0 Iterations: ", iterations)
-	#print("Current State at Branch 0: \n", currentStates)
-	#np.save("initialDevelopedStates_saved", currentStates)
-
-	currentStates = initialStates
-	#findAllNextStates recurses over cell type tree and develops cells
-	findAllNextStates(gc, n, timeStep, cellTypeTree.head(), cellTypeTree, currentStates, cellTypesRecord, noiseDisp, convergenceThreshold, maxNumIterations, convDistAvgNum, cellsToSample, geneMeanLevels, showCellPlots, cellDevelopmentMode, totalCellIterations)
-	finalCellStates = currentStates
-	print("Final Cell States Before Transformations: \n", finalCellStates)
-
-	cellSizeFactors = np.zeros(shape=cells)
-	pseudotimes = timeStep * totalCellIterations
-	randomGenes = np.random.randint(0, n, size=5)
-	analyzeDataBeforeTransformation(n, cells, finalCellStates, saveFolder, alpha, randomGenes, pseudotimes, networkStructure)
-	finalCellStates, cellSizeFactors = transformData(n, cells, finalCellStates, dropoutProportion, cellRadiusDisp, geneScale, expScale, expLambda, saveFolder, shape, rate, gammaDistMean)
-	print("Final States After Transformations: \n", finalCellStates)
-
-	saveData(finalCellStates, cellTypesRecord, gc, projMatrix, constMatrix, cellSizeFactors, pseudotimes, saveFolder, targetDirectory, R_Directory)
-	analyzeSCRNAseqData(n, cells, perplexityParam, cellTypesRecord, finalCellStates, saveFolder)
-
 
 main()

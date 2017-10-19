@@ -18,6 +18,7 @@ from sklearn.manifold import TSNE
 from sklearn.linear_model import Lasso
 from sklearn.neural_network import MLPRegressor
 from scipy.stats import spearmanr
+from scipy.stats import rankdata
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import SpectralClustering
@@ -26,6 +27,43 @@ from sklearn import metrics
 from collections import Counter
 
 #plotly.tools.set_credentials_file(username='steffen12', api_key='EMPLQR8c6OkDVDwR1p9k')
+
+def main():
+	targetDirectory = "/home/steffen12/NIH_Internship/"
+	os.chdir(targetDirectory)
+
+	alphaMax = 1e-1
+	alphaMin = 1e-3
+	alphaMultStep = 1.0/2
+	pseudotimeThresh = 0.10 #0,20
+	numCVPartitions = 5
+	windowSize = 100
+	#pseudotimeOffset = 0 #Make this as small as can be
+
+	perplexity = 30
+
+	epsilon = 0.01#2e-4 #1.5
+	min_samples = 3 #7
+
+	n, cells, cellStates, pseudotimes, cellTypesRecord, W_real = readCellStates()
+	pseudotimes = normalizePseudotimes(pseudotimes)
+	print("Num genes: ", n, ", num cells: ", cells)
+	print("Cell States: ", cellStates)
+	print("Num TF Connections: ", np.flatnonzero(W_real).size)
+	print("Pseudotimes: ", pseudotimes)
+
+	cellStates = smoothCellData(cells, windowSize, cellStates, pseudotimes)
+
+	geneClusters = clusterGenes(n, cells, cellStates, perplexity, epsilon, min_samples)
+
+	for plotGene in range(n):
+		#plotGeneOverPseudotime(plotGene, pseudotimes, cellStates)
+		pass
+
+	crossValidateData(n, cells, numCVPartitions, alphaMin, alphaMax, alphaMultStep, pseudotimeThresh, cellStates, pseudotimes, cellTypesRecord, W_real, geneClusters)
+	
+	#showWGraph(n, W_real)
+	#showWGraph(n, W)
 
 def readCellStates():
 
@@ -46,7 +84,44 @@ def readCellStates():
 
 	(n, cells) = cellStates.shape
 
+	cellStates = convertToS(n, cells, cellStates)
+
 	return(n, cells, cellStates, pseudotimes, cellTypesRecord, W_real)
+
+def convertToS(n, cells, cellStates):
+	for cellNum in range(cells):
+		cellRankings = rankdata(cellStates[:, cellNum])
+		cellStates[:, cellNum] = (2 * (cellRankings + 1)/(n) - 1)
+
+	for geneNum in range(n):
+		geneRankings = rankdata(cellStates[geneNum, :])
+		cellStates[geneNum, :] = (2 * (geneRankings + 1)/(cells) - 1)
+
+	return(cellStates)
+
+def readCellStatesReal():
+
+	# R_dir = '/home/scornwell/'
+
+	# r_object = 'cellStates'
+	# robjects.r['load'](R_dir + r_object + '.RData')
+	# cellStates = np.array(robjects.r[r_object])
+
+	# r_object = 'pseudotimes'
+	# robjects.r['load'](R_dir + r_object + '.RData')
+	# pseudotimes = np.array(robjects.r[r_object])
+
+	cellStates = np.loadtxt("S_cell_states.tsv", delimiter="\t")
+	pseudotimes = np.loadtxt("realPseudotimes.tsv", delimiter="\t")
+	(n, cells) = cellStates.shape
+	cellTypesRecord = np.zeros(shape=cells, dtype="int")
+	with open("transcriptionFactors.txt", "r") as tfFile:
+		tfNames = tfFile.read().splitlines()
+
+	W_real = getWRealFromTRRUST(tfNames)
+
+	return(n, cells, cellStates, pseudotimes, cellTypesRecord, W_real)
+
 
 def getWRealFromTRRUST(tfNames):
 	geneGraph = nx.DiGraph()
@@ -86,32 +161,205 @@ def getWRealFromTRRUST(tfNames):
 
 	return(W_TRRUST)
 
-def readCellStatesReal():
-
-	# R_dir = '/home/scornwell/'
-
-	# r_object = 'cellStates'
-	# robjects.r['load'](R_dir + r_object + '.RData')
-	# cellStates = np.array(robjects.r[r_object])
-
-	# r_object = 'pseudotimes'
-	# robjects.r['load'](R_dir + r_object + '.RData')
-	# pseudotimes = np.array(robjects.r[r_object])
-
-	cellStates = np.loadtxt("S_cell_states.tsv", delimiter="\t")
-	pseudotimes = np.loadtxt("realPseudotimes.tsv", delimiter="\t")
-	(n, cells) = cellStates.shape
-	cellTypesRecord = np.zeros(shape=cells, dtype="int")
-	with open("transcriptionFactors.txt", "r") as tfFile:
-		tfNames = tfFile.read().splitlines()
-
-	W_real = getWRealFromTRRUST(tfNames)
-
-	return(n, cells, cellStates, pseudotimes, cellTypesRecord, W_real)
-
 def normalizePseudotimes(pseudotimes):
 	pseudotimes /= np.max(pseudotimes)
 	return(pseudotimes)
+
+def smoothCellData(cells, windowSize, cellStates, pseudotimes):
+	#Please choose only an odd window size
+	cellStatesSmooth = np.copy(cellStates)
+	pseudotimeOrderedIndexes = np.argsort(pseudotimes)
+	for j in range(len(pseudotimeOrderedIndexes)):
+		pseudotimeWindowIndexes = []
+		pseudotimeOriginalIndex = pseudotimeOrderedIndexes[j]
+		windowStart = j - int(windowSize / 2)
+		if(windowStart < 0):
+			windowStart = 0
+		windowEnd = j + 1 + int(windowSize / 2) #Add one because not inclusive
+		if(windowEnd > cells):
+			windowEnd = cells
+		for k in range(windowStart, windowEnd):
+			pseudotimeWindowIndexes.append(pseudotimeOrderedIndexes[k])
+		cellStatesSmooth[:, pseudotimeOriginalIndex] = np.mean(cellStates[:, pseudotimeWindowIndexes], axis=1)
+	return(cellStatesSmooth)
+
+def clusterGenes(n, cells, cellStates, perplexity, epsilon, min_samples):
+	#numClusters = 100
+
+	#numNeighbors = 5
+
+	distanceMatrix = getCorrelationMatrix(n, cells, cellStates)
+	print("Distance Matrix: ", distanceMatrix)
+	#print(distanceMatrix)
+	#trace = go.Heatmap(z=distanceMatrix)
+	#data = [trace]
+	#heatmapFile = "heatmap_" + datetime.datetime.now().strftime("%m-%d-%Y+%H:%M:%S")
+	
+	#plotly.offline.plot(data, filename=heatmapFile)
+	#py.iplot(data, filename=heatmapFile)
+
+	model = TSNE(n_components=2, perplexity=perplexity)
+	np.set_printoptions(suppress=True)
+	tsneResult = model.fit_transform(cellStates) #Transpose because cells are data we are clustering
+
+	dbClust = DBSCAN(eps=epsilon, min_samples=min_samples, metric="precomputed").fit(distanceMatrix)
+	labels = dbClust.labels_ #Labels of -1 are noisy
+
+	#dbClust = DBSCAN(eps=epsilon, min_samples=min_samples, metric="precomputed").fit(distanceMatrix)
+	#labels = dbClust.labels_ #Labels of -1 are noisy
+
+	#aggClust = AgglomerativeClustering(n_clusters=numClusters, affinity="precomputed", linkage="average").fit(distanceMatrix)
+	#labels = aggClust.labels_
+
+	#specClust =  SpectralClustering(n_clusters=numClusters, affinity="precomputed", n_neighbors=numNeighbors).fit(distanceMatrix)
+	#labels = specClust.labels_
+
+	print("Gene Clusters: ", labels)
+	newClustNumber = max(labels) + 1
+	if min(labels) == -1: #There are noise labels
+		for i in range(len(labels)):
+			if(labels[i] == -1):
+				labels[i] = newClustNumber
+				newClustNumber += 1
+
+	labelsSet = list(set(labels))
+	palette = np.array(sns.color_palette("hls", len(labelsSet)))
+
+	f = plt.figure(figsize=(8, 8))
+	ax = plt.subplot(aspect='equal')
+
+	colorHandles = []
+	for cellTypeNum in labelsSet:
+	 	colorHandles.append(mpatches.Patch(color=palette[cellTypeNum], label=cellTypeNum))
+
+	plt.legend(handles=colorHandles, borderaxespad=0)
+
+	sc = ax.scatter(tsneResult[:,0], tsneResult[:,1], lw=0, s=40, c=palette[labels.astype(np.int)])
+	ax.axis('off')
+	ax.axis('tight')
+	#plt.show()
+
+	return(labels)
+
+def getCorrelationMatrix(n, cells, cellStates):
+	cellStatesNorm = np.copy(cellStates)
+
+	geneMeans = np.mean(cellStatesNorm, axis = 1)
+	for cell in range(cells):
+		cellStatesNorm[:, cell] -= geneMeans
+
+	geneStds = np.std(cellStatesNorm, axis = 1)
+	for gene in range(n):
+		if(geneStds[gene] != 0):
+			cellStatesNorm[gene, :] /= geneStds[gene]
+			#plt.hist(cellStatesNorm[gene, :])
+			#plt.show()
+		else:
+			cellStatesNorm[gene, :] = np.zeros(shape=cells)
+
+	correlationMatrix = np.dot(cellStatesNorm, np.transpose(cellStatesNorm)) / (cells-1)
+
+	distanceMatrix = (np.ones((n, n)) - correlationMatrix) / 2
+	return(distanceMatrix)
+
+def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep, pseudotimeThresh, cellStates, pseudotimes, cellTypesRecord, W_real, geneClusters):
+	meanSquaredErrorThreshold = 3
+
+	minMeanSquaredErrorArray = np.zeros(numPartitions)
+	alphaArray = np.zeros(numPartitions)
+	sensitivityArray = np.zeros(numPartitions)
+	specificityArray = np.zeros(numPartitions)
+	precisionArray = np.zeros(numPartitions)
+	W_array = np.zeros(shape=(n,n,numPartitions))
+
+	print("Cluster Membership: ", Counter(geneClusters))
+
+	cellIndices = [x for x in range(cells)]
+	random.shuffle(cellIndices)
+	cellsPerPartition = int(cells / numPartitions)
+	for partition in range(numPartitions):
+		cvStart = partition * cellsPerPartition
+		cvEnd = (partition + 1) * cellsPerPartition
+		if (partition + 1) == numPartitions:
+			cvEnd = cells
+		cvIndices = cellIndices[cvStart:cvEnd]
+		dataIndices = list(set(cellIndices) - set(cvIndices))
+
+		dataCellStates = cellStates[:, dataIndices]
+		dataPseudotimes = pseudotimes[dataIndices]
+		dataCellTypesRecord = cellTypesRecord[dataIndices]
+
+		cvCellStates = cellStates[:, cvIndices]
+		cvPseudotimes = pseudotimes[cvIndices]
+		cvCellTypesRecord = cellTypesRecord[cvIndices]
+
+		alpha = alphaMax
+
+		minMeanSquaredError = float("inf")
+		minMeanSquaredErrorDiff = float("inf")
+		optAlpha = -1
+		optW = -1
+		optW_random = -1
+		optSensitivity = -1
+		optSpecificity = -1
+		optPrecision = -1
+		meanSquaredError = 0
+
+		while(alpha > alphaMin and meanSquaredError < meanSquaredErrorThreshold*minMeanSquaredError):
+			print("Analysis: ")
+			print("Alpha: ", alpha)
+			W = findWMatrix(n, cells, W_real, dataCellStates, dataCellTypesRecord, pseudotimeThresh, dataPseudotimes, alpha)
+			print("Total Magnitude of W predicted: ", np.linalg.norm(W))
+			print("Total Magnitude of W_real: ", np.linalg.norm(W_real))
+
+			sensitivity, specificity, precision = compareToRealW(n, W, W_real, geneClusters)
+			meanSquaredError = getCVCost(pseudotimeThresh, W, cvCellStates, cvPseudotimes, cvCellTypesRecord)
+			print("Mean Squared Error: " , meanSquaredError)
+			
+			print("Comparison to Random W:")
+			W_random = generateRandomW(W)
+			compareToRealW(n, W_random, W_real, geneClusters)
+			randomMeanSquaredError = getCVCost(pseudotimeThresh, W_random, cvCellStates, cvPseudotimes, cvCellTypesRecord)
+			print("Random W Mean Squared Error: " , randomMeanSquaredError)
+
+			if((randomMeanSquaredError - meanSquaredError) < (minMeanSquaredErrorDiff)):
+				minMeanSquaredError = meanSquaredError
+				minMeanSquaredErrorDiff = (randomMeanSquaredError - meanSquaredError)
+				optAlpha = alpha
+				optSensitivity = sensitivity
+				optSpecificity = specificity
+				optPrecision = precision
+				optW = W
+				optW_random = W_random
+
+			print("")
+			alpha *= alphaMultStep
+
+		print("Optimal Alpha: ", optAlpha)
+		print("Optimal MSE: ", minMeanSquaredError)
+		minMeanSquaredErrorArray[partition] = minMeanSquaredError
+		alphaArray[partition] = optAlpha
+		sensitivityArray[partition] = optSensitivity
+		specificityArray[partition] = optSpecificity
+		precisionArray[partition] = optPrecision
+		W_array[:,:,partition] = optW
+
+		W_cluster = getWClusterPred(n, optW, geneClusters)
+		W_real_cluster = getWClusterReal(n, W_real, geneClusters)
+		W_random_cluster = getWClusterPred(n, optW_random, geneClusters)
+
+		print("Real W ROC:")
+		plotROCCurve(n, W_cluster, W_real_cluster, geneClusters)
+		print("Random W ROC:")
+		plotROCCurve(n, W_random_cluster, W_real_cluster, geneClusters)
+
+	print("Summary Statistics: ")
+	print("Alpha Mean and Sd: ", np.mean(alphaArray), ", ", np.std(alphaArray))
+	print("MSE Mean and Sd: ", np.mean(minMeanSquaredErrorArray), ", ", np.std(minMeanSquaredErrorArray))
+	print("Sensitivity Mean and Sd: ", np.mean(sensitivityArray), ", ", np.std(sensitivityArray))
+	print("Specificity Mean and Sd: ", np.mean(specificityArray), ", ", np.std(specificityArray))
+	print("Precision Mean and Sd: ", np.mean(precisionArray), ", ", np.std(precisionArray))
+	print("W Sd: ", np.mean(np.std(W_array, axis=2)))
 
 def lasso_regression(data, y_vals, alpha, models_to_plot={}):
     #Fit the model
@@ -158,24 +406,6 @@ def neural_network(n, data, y_vals, alpha):
 	ret.extend(list(neural_net.coefs_[0] * neural_net.coefs_[1]))
 	print("Neural Network Coefficients: ", neural_net.coefs_[0])
 	return ret
-
-def smoothCellData(cells, windowSize, cellStates, pseudotimes):
-	#Please choose only an odd window size
-	cellStatesSmooth = np.copy(cellStates)
-	pseudotimeOrderedIndexes = np.argsort(pseudotimes)
-	for j in range(len(pseudotimeOrderedIndexes)):
-		pseudotimeWindowIndexes = []
-		pseudotimeOriginalIndex = pseudotimeOrderedIndexes[j]
-		windowStart = j - int(windowSize / 2)
-		if(windowStart < 0):
-			windowStart = 0
-		windowEnd = j + 1 + int(windowSize / 2) #Add one because not inclusive
-		if(windowEnd > cells):
-			windowEnd = cells
-		for k in range(windowStart, windowEnd):
-			pseudotimeWindowIndexes.append(pseudotimeOrderedIndexes[k])
-		cellStatesSmooth[:, pseudotimeOriginalIndex] = np.mean(cellStates[:, pseudotimeWindowIndexes], axis=1)
-	return(cellStatesSmooth)
 
 def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeThresh, pseudotimesNew, alpha):
 	#T = np.load("T.npy")#
@@ -343,87 +573,29 @@ def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeT
 	np.save("W", W)
 	return(W)
 
-def getCorrelationMatrix(n, cells, cellStates):
-	cellStatesNorm = np.copy(cellStates)
+def getWClusterPred(n, W, geneClusters):
+	geneClustersSet = list(set(geneClusters))
 
-	geneMeans = np.mean(cellStatesNorm, axis = 1)
-	for cell in range(cells):
-		cellStatesNorm[:, cell] -= geneMeans
+	W_cluster = np.zeros(shape=(n, len(geneClustersSet)))
+	for i in range(n):
+		for clusterNum in geneClustersSet:
+			clusterPredictedRegSum = 0
+			for j in range(n):
+				if(geneClusters[j] == clusterNum and W[i,j] != 0):
+					clusterPredictedRegSum += np.abs(W[i,j])
+			W_cluster[i, clusterNum] = clusterPredictedRegSum
+	return(W_cluster)
 
-	geneStds = np.std(cellStatesNorm, axis = 1)
-	for gene in range(n):
-		if(geneStds[gene] != 0):
-			cellStatesNorm[gene, :] /= geneStds[gene]
-			#plt.hist(cellStatesNorm[gene, :])
-			#plt.show()
-		else:
-			cellStatesNorm[gene, :] = np.zeros(shape=cells)
+def getWClusterReal(n, W_real, geneClusters):
+	geneClustersSet = list(set(geneClusters))
 
-	correlationMatrix = 1/(cells-1) * np.dot(cellStatesNorm, np.transpose(cellStatesNorm))
-	distanceMatrix = (1 - correlationMatrix) / 2
-	return(distanceMatrix)
-
-def clusterGenes(n, cells, cellStates):
-	perplexity = 30
-
-	epsilon = 0.01#2e-4 #1.5
-	min_samples = 2 #7
-
-	#numClusters = 100
-
-	#numNeighbors = 5
-
-	distanceMatrix = getCorrelationMatrix(n, cells, cellStates)
-	#print(distanceMatrix)
-	#trace = go.Heatmap(z=distanceMatrix)
-	#data = [trace]
-	#heatmapFile = "heatmap_" + datetime.datetime.now().strftime("%m-%d-%Y+%H:%M:%S")
-	
-	#plotly.offline.plot(data, filename=heatmapFile)
-	#py.iplot(data, filename=heatmapFile)
-
-	model = TSNE(n_components=2, perplexity=perplexity)
-	np.set_printoptions(suppress=True)
-	tsneResult = model.fit_transform(cellStates) #Transpose because cells are data we are clustering
-
-	dbClust = DBSCAN(eps=epsilon, min_samples=min_samples, metric="precomputed").fit(distanceMatrix)
-	labels = dbClust.labels_ #Labels of -1 are noisy
-
-	#dbClust = DBSCAN(eps=epsilon, min_samples=min_samples, metric="precomputed").fit(distanceMatrix)
-	#labels = dbClust.labels_ #Labels of -1 are noisy
-
-	#aggClust = AgglomerativeClustering(n_clusters=numClusters, affinity="precomputed", linkage="average").fit(distanceMatrix)
-	#labels = aggClust.labels_
-
-	#specClust =  SpectralClustering(n_clusters=numClusters, affinity="precomputed", n_neighbors=numNeighbors).fit(distanceMatrix)
-	#labels = specClust.labels_
-
-	print("Gene Clusters: ", labels)
-	newClustNumber = max(labels) + 1
-	if min(labels) == -1: #There are noise labels
-		for i in range(len(labels)):
-			if(labels[i] == -1):
-				labels[i] = newClustNumber
-				newClustNumber += 1
-
-	labelsSet = list(set(labels))
-	palette = np.array(sns.color_palette("hls", len(labelsSet)))
-
-	f = plt.figure(figsize=(8, 8))
-	ax = plt.subplot(aspect='equal')
-
-	colorHandles = []
-	for cellTypeNum in labelsSet:
-	 	colorHandles.append(mpatches.Patch(color=palette[cellTypeNum], label=cellTypeNum))
-
-	plt.legend(handles=colorHandles, borderaxespad=0)
-
-	sc = ax.scatter(tsneResult[:,0], tsneResult[:,1], lw=0, s=40, c=palette[labels.astype(np.int)])
-	ax.axis('off')
-	ax.axis('tight')
-	#plt.show()
-
-	return(labels)
+	W_real_cluster = np.zeros(shape=(n, len(geneClustersSet)))
+	for i in range(n):
+		for clusterNum in geneClustersSet:
+			for j in range(n):
+				if(geneClusters[j] == clusterNum and W_real[i,j] != 0):
+					W_real_cluster[i, clusterNum] = 1
+	return(W_real_cluster)
 
 def getCVCost(pseudotimeThresh, W, cvCellStates, cvPseudotimes, cvCellTypesRecord):
 	totalNumCellPairs = 0
@@ -463,129 +635,6 @@ def generateRandomW(W):
 	np.random.shuffle(W_random)
 	W_random = np.transpose(W)
 	return(W_random)
-
-def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep, pseudotimeThresh, cellStates, pseudotimes, cellTypesRecord, W_real, geneClusters):
-	meanSquaredErrorThreshold = 3
-
-	minMeanSquaredErrorArray = np.zeros(numPartitions)
-	alphaArray = np.zeros(numPartitions)
-	sensitivityArray = np.zeros(numPartitions)
-	specificityArray = np.zeros(numPartitions)
-	precisionArray = np.zeros(numPartitions)
-	W_array = np.zeros(shape=(n,n,numPartitions))
-
-	print("Cluster Membership: ", Counter(geneClusters))
-
-	cellIndices = [x for x in range(cells)]
-	random.shuffle(cellIndices)
-	cellsPerPartition = int(cells / numPartitions)
-	for partition in range(numPartitions):
-		cvStart = partition * cellsPerPartition
-		cvEnd = (partition + 1) * cellsPerPartition
-		if (partition + 1) == numPartitions:
-			cvEnd = cells
-		cvIndices = cellIndices[cvStart:cvEnd]
-		dataIndices = list(set(cellIndices) - set(cvIndices))
-
-		dataCellStates = cellStates[:, dataIndices]
-		dataPseudotimes = pseudotimes[dataIndices]
-		dataCellTypesRecord = cellTypesRecord[dataIndices]
-
-		cvCellStates = cellStates[:, cvIndices]
-		cvPseudotimes = pseudotimes[cvIndices]
-		cvCellTypesRecord = cellTypesRecord[cvIndices]
-
-		alpha = alphaMax
-
-		minMeanSquaredError = float("inf")
-		minMeanSquaredErrorDiff = float("inf")
-		optAlpha = -1
-		optW = -1
-		optW_random = -1
-		optSensitivity = -1
-		optSpecificity = -1
-		optPrecision = -1
-		meanSquaredError = 0
-
-		while(alpha > alphaMin and meanSquaredError < meanSquaredErrorThreshold*minMeanSquaredError):
-			print("Analysis: ")
-			print("Alpha: ", alpha)
-			W = findWMatrix(n, cells, W_real, dataCellStates, dataCellTypesRecord, pseudotimeThresh, dataPseudotimes, alpha)
-			print("Total Magnitude of W predicted: ", np.linalg.norm(W))
-			print("Total Magnitude of W_real: ", np.linalg.norm(W_real))
-
-			sensitivity, specificity, precision = compareToRealW(n, W, W_real, geneClusters)
-			meanSquaredError = getCVCost(pseudotimeThresh, W, cvCellStates, cvPseudotimes, cvCellTypesRecord)
-			print("Mean Squared Error: " , meanSquaredError)
-			
-			print("Comparison to Random W:")
-			W_random = generateRandomW(W)
-			compareToRealW(n, W_random, W_real, geneClusters)
-			randomMeanSquaredError = getCVCost(pseudotimeThresh, W_random, cvCellStates, cvPseudotimes, cvCellTypesRecord)
-			print("Random W Mean Squared Error: " , randomMeanSquaredError)
-
-			if((randomMeanSquaredError - meanSquaredError) < (minMeanSquaredErrorDiff)):
-				minMeanSquaredError = meanSquaredError
-				minMeanSquaredErrorDiff = (randomMeanSquaredError - meanSquaredError)
-				optAlpha = alpha
-				optSensitivity = sensitivity
-				optSpecificity = specificity
-				optPrecision = precision
-				optW = W
-				optW_random = W_random
-
-			print("")
-			alpha *= alphaMultStep
-
-		print("Optimal Alpha: ", optAlpha)
-		print("Optimal MSE: ", minMeanSquaredError)
-		minMeanSquaredErrorArray[partition] = minMeanSquaredError
-		alphaArray[partition] = optAlpha
-		sensitivityArray[partition] = optSensitivity
-		specificityArray[partition] = optSpecificity
-		precisionArray[partition] = optPrecision
-		W_array[:,:,partition] = optW
-
-		W_cluster = getWClusterPred(n, optW, geneClusters)
-		W_real_cluster = getWClusterReal(n, W_real, geneClusters)
-		W_random_cluster = getWClusterPred(n, optW_random, geneClusters)
-
-		print("Real W ROC:")
-		plotROCCurve(n, W_cluster, W_real_cluster, geneClusters)
-		print("Random W ROC:")
-		plotROCCurve(n, W_random_cluster, W_real_cluster, geneClusters)
-
-	print("Summary Statistics: ")
-	print("Alpha Mean and Sd: ", np.mean(alphaArray), ", ", np.std(alphaArray))
-	print("MSE Mean and Sd: ", np.mean(minMeanSquaredErrorArray), ", ", np.std(minMeanSquaredErrorArray))
-	print("Sensitivity Mean and Sd: ", np.mean(sensitivityArray), ", ", np.std(sensitivityArray))
-	print("Specificity Mean and Sd: ", np.mean(specificityArray), ", ", np.std(specificityArray))
-	print("Precision Mean and Sd: ", np.mean(precisionArray), ", ", np.std(precisionArray))
-	print("W Sd: ", np.mean(np.std(W_array, axis=2)))
-
-def getWClusterPred(n, W, geneClusters):
-	geneClustersSet = list(set(geneClusters))
-
-	W_cluster = np.zeros(shape=(n, len(geneClustersSet)))
-	for i in range(n):
-		for clusterNum in geneClustersSet:
-			clusterPredictedRegSum = 0
-			for j in range(n):
-				if(geneClusters[j] == clusterNum and W[i,j] != 0):
-					clusterPredictedRegSum += np.abs(W[i,j])
-			W_cluster[i, clusterNum] = clusterPredictedRegSum
-	return(W_cluster)
-
-def getWClusterReal(n, W_real, geneClusters):
-	geneClustersSet = list(set(geneClusters))
-
-	W_real_cluster = np.zeros(shape=(n, len(geneClustersSet)))
-	for i in range(n):
-		for clusterNum in geneClustersSet:
-			for j in range(n):
-				if(geneClusters[j] == clusterNum and W_real[i,j] != 0):
-					W_real_cluster[i, clusterNum] = 1
-	return(W_real_cluster)
 
 def compareToRealW(n, W, W_real, geneClusters):
 	geneClustersSet = list(set(geneClusters))
@@ -742,36 +791,5 @@ def plotGeneOverPseudotime(gene, pseudotimes, cellStates):
 	plt.title("Gene " + str(gene) + " over Pseudotime")
 	plt.scatter(pseudotimes[sortedIndexes], cellStates[gene, sortedIndexes])
 	plt.show()
-
-def main():
-	targetDirectory = "/home/steffen12/NIH_Internship/"
-	os.chdir(targetDirectory)
-
-	alphaMax = 1e-1
-	alphaMin = 1e-3
-	alphaMultStep = 1.0/2
-	pseudotimeThresh = 0.10 #0,20
-	numCVPartitions = 5
-	windowSize = 100
-	#pseudotimeOffset = 0 #Make this as small as can be
-
-	n, cells, cellStates, pseudotimes, cellTypesRecord, W_real = readCellStates()
-	pseudotimes = normalizePseudotimes(pseudotimes)
-	print("Num genes: ", n, ", num cells: ", cells)
-	print("Num TF Connections: ", np.flatnonzero(W_real).size)
-	print("Pseudotimes: ", pseudotimes)
-
-	cellStates = smoothCellData(cells, windowSize, cellStates, pseudotimes)
-
-	geneClusters = clusterGenes(n, cells, cellStates)
-
-	for plotGene in range(n):
-		#plotGeneOverPseudotime(plotGene, pseudotimes, cellStates)
-		pass
-
-	crossValidateData(n, cells, numCVPartitions, alphaMin, alphaMax, alphaMultStep, pseudotimeThresh, cellStates, pseudotimes, cellTypesRecord, W_real, geneClusters)
-	
-	#showWGraph(n, W_real)
-	#showWGraph(n, W)
 
 main()
