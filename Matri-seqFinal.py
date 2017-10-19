@@ -132,7 +132,7 @@ def generateGeneCorrelationMatrix(n, maxAlphaBeta, normalizeWRows, networkStruct
 	outDegrees = np.sum(networkMatrix, axis = 0)
 	transcriptionFactors = np.nonzero(outDegrees)[0]
 
-	return(gc, transcriptionFactors)
+	return(n, gc, transcriptionFactors)
 
 #Analysis of the indegree and outdegree distributions of the chosen network
 def analyzeNetworkStructure(n, networkMatrix, networkStructure, saveFolder):
@@ -241,6 +241,7 @@ def getNextProjConst(n, projInit, constInit, constProp, transcriptionFactors):
 			const[i] = rangeTransformation(random.randint(0, 1))
 	return proj, const
 
+#Dummy function
 def generateGeneMeanLevels(n, expScale):
 	geneMeanLevels = np.zeros(shape = (n))
 	return(geneMeanLevels)
@@ -433,15 +434,17 @@ def findCellNextState(gc, n, timeStep, i, proj, const, initialState, cellIterati
 	if(showPlots):
 		xVals = [x for x in range(0, cellIterations)]
 
+		plt.title("Convergence Graph")
 		plt.plot(xVals, normDiffVals)
 		plt.show()
 
-		title = "Gene: " + str(gene)
+		title = "Gene " + str(gene) + " Over Time"
 		plt.scatter(xVals, geneExpr)
 		plt.title(title)
 		plt.plot(xVals, geneExpr)
 		plt.show()
 
+		plt.title("Current Distribution of Gene Expression")
 		plt.hist(yVals, bins = int(n/25))
 		plt.show()
 
@@ -460,7 +463,7 @@ def findAllNextStates(gc, n, timeStep, cellTypeNode, cellTypeTree, currentStates
 	if len(cellTypeMembers) == 0:
 		cellTypeIterations = 0
 	else:
-		print("Constant Gene Proportion: ", 1 - float(np.count_nonzero(proj))/np.size(proj))
+		#print("Constant Gene Proportion: ", 1 - float(np.count_nonzero(proj))/np.size(proj))
 		cellTypeIterations = findOptimalIterations(n, gc, timeStep, cellTypeMembers, proj, const, geneMeanLevels, convergenceThreshold, noiseDisp, currentStates, maxNumIterations, convDistAvgNum, numToSample)
 		for i in range(len(cellTypeMembers)):
 			if cellDevelopmentMode:
@@ -693,10 +696,10 @@ def makeFolder(n, cells):
 	
 def loadSavedData():
 	gc = np.load("gc.npy")
-	projMatrix = np.load("projMatrix.npy")
-	constMatrix = np.load("constMatrix.npy")
+	#projMatrix = np.load("projMatrix.npy")
+	#constMatrix = np.load("constMatrix.npy")
 
-	return gc, projMatrix, constMatrix
+	return gc#, projMatrix, constMatrix
 
 def saveData(synthscRNAseq, cellTypesRecord, gc, projMatrix, constMatrix, cellSizeFactors, synthPseudotimes, copyFolder, targetDirectory, R_Directory):
 	
@@ -716,6 +719,8 @@ def saveData(synthscRNAseq, cellTypesRecord, gc, projMatrix, constMatrix, cellSi
 		r(rSaveString)
 
 def main():
+	###Define Input Parameters###
+
 	###Step 0 - choose a directory to work in###
 	targetDirectory = "/home/steffen12/NIH_Internship/"
 	R_Directory = "/home/steffen12/NIH_Internship/R_files/"
@@ -724,7 +729,7 @@ def main():
 	###Step 1 - Select the parameters to determine W#
 
 	#n is the number of genes, W will be a nxn matrix
-	n = 2895 #19027
+	n = 200 #19027
 	#cells = 100 #864
 
 	#SimulatedPowerLaw - Simulated power law network with powerLawExponent as parameter
@@ -751,13 +756,31 @@ def main():
 	sameInitialCell = True
 	cellDevelopmentMode = True
 
-	cellTypeNumCells = [100, 100, 100, 300, 300, 300, 300]
-	cellTypeParents = [-1, 0, 0, 1, 1, 2, 2]
-	cellTypeConstProps = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
-	cellTypeMeans = None #Not inherited, feature not available in current version
+	cellTypeNumCells = [200] #[100, 100, 100, 300, 300, 300, 300]
+	cellTypeParents = [-1]#[-1, 0, 0, 1, 1, 2, 2]
+	cellTypeConstProps = [0.05] #[0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
+	cellTypeMeans = [0] #Not inherited, feature not available in current version
 
-	###Step 4 - Choose the mean and cell size mapping parameters:###
+	###Step 4 - Choose the timeStep, noise, convergence, and iteration sampling parameters:###
 
+	#Controlling gene trajectory smoothness
+	timeStep = 0.01 #0.01
+	noiseDisp = 0.05
+
+	#Parameters to calculate alpha
+	convergenceThreshold = 0.1
+	alphaStep = 0.02 #How much to increase alpha by in each step - DO NOT decrease below 0.01
+	maxNumIterations = 500
+	cellsToSample = 50 #How many cells to sample - must be less than num cells
+	convDistAvgNum = 20
+
+	###Step 5 - Choose the mean and cell size mapping parameters:###
+
+	#Select exponential base
+	expScale = 1#4#6.81
+
+	#Select whether to use a Gamma distributed gene mean or an Exponentially-Modified Gaussian gene mean
+	#Option must be set to True in current version
 	gammaDistMean = True
 
 	#Gamma mean parameters
@@ -768,33 +791,20 @@ def main():
 	expLambda = 0#0.50
 	geneScale = 0#0.47
 
-	#Expontial base and cell size parameters
-	expScale = 1#4#6.81
+	#Select cell size distribution
 	cellRadiusDisp = 0.14
-
-	###Step 5 - Choose the timeStep, noise, convergence, and iteration sampling parameters:###
-
-	#Controlling gene trajectory smoothness
-	timeStep = 0.01 #0.01
-	noiseDisp = 5e-2
-
-	#Parameters to calculate alpha
-	convergenceThreshold = 1e-1
-	alpha_step = 0.02 #How much to increase alpha by in each step
-	maxNumIterations = 500
-	numToSample = 50 #How many cells to sample - must be less than num cells
-	convDistAvgNum = 20
 
 	###(Optional) Step 6 - Optional loading and graphing parameters###
 	loadData = False
-	showPlots = False
+	showCellPlots = False
 	showAlphaGeneMeans = False
 	saveFolder = None #Set to None if you want to make it dynamic
-	perplexityParam = 30
 	randomSeed = 393#123
 
 	###Unused parameters###
 	dropoutProportion = 0.0
+	perplexityParam = 30
+
 
 	###Start running commands###
 
@@ -803,7 +813,6 @@ def main():
 	cellTypesRecord = np.zeros(shape=cells, dtype="int64")
 	totalCellIterations = np.zeros(shape=cells, dtype="int64")
 	maxNumIterations = maxNumIterations + convDistAvgNum
-	geneMeanLevels = np.zeros(shape=n)
 
 	#Make folder for results
 	if saveFolder == None:
@@ -816,29 +825,30 @@ def main():
 
 	#Determine important underlying objects
 	n, gc, transcriptionFactors = generateGeneCorrelationMatrix(n, maxAlphaBeta, normalizeWRows, networkStructure, powerLawExponent, networkSparsity, saveFolder)
+	geneMeanLevels = np.zeros(shape=n) #Unused in current version
 	cellTypeTree, projMatrix, constMatrix = formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells, cellTypeConstProps, transcriptionFactors, cellTypeMeans)
 	#geneMeanLevels = generateGeneMeanLevels(n, expScale)
 
 	initialStates = generateInitialStates(n, cells, geneMeanLevels, sameInitialCell)
 	print("Initial States: ", initialStates)
 	#alpha determined based on optimal development for progenitor cell type (parent = -1)
-	alpha = findOptimalAlpha(n, gc, timeStep, cellTypeTree, geneMeanLevels, convergenceThreshold, noiseDisp, initialStates, maxNumIterations, convDistAvgNum, numToSample, initialAlpha, alpha_step, showAlphaGeneMeans)
+	alpha = findOptimalAlpha(n, gc, timeStep, cellTypeTree, geneMeanLevels, convergenceThreshold, noiseDisp, initialStates, maxNumIterations, convDistAvgNum, cellsToSample, initialAlpha, alphaStep, showAlphaGeneMeans)
 	gc = gc / alpha #Update gc with new alpha
 	print("Alpha: ", alpha)
 
 	if(loadData):
-		gc, projMatrix, constMatrix = loadSavedData()
+		gc = loadSavedData()
 	print("Loaded Data: ", loadData)
 	print("GC :", gc)
 
-	#currentStates = developInitialStates(n, cells, initialStates, gc, timeStep, iterations, cellTypesRecord, totalCellIterations, projMatrix, constMatrix, noiseDisp, geneMeanLevels, showPlots, keepProportion, currentCellSplit, numCellSplits, cellDevelopmentMode)
+	#currentStates = developInitialStates(n, cells, initialStates, gc, timeStep, iterations, cellTypesRecord, totalCellIterations, projMatrix, constMatrix, noiseDisp, geneMeanLevels, showCellPlots, keepProportion, currentCellSplit, numCellSplits, cellDevelopmentMode)
 	#print("Branch 0 Iterations: ", iterations)
 	#print("Current State at Branch 0: \n", currentStates)
 	#np.save("initialDevelopedStates_saved", currentStates)
 
 	currentStates = initialStates
 	#findAllNextStates recurses over cell type tree and develops cells
-	findAllNextStates(gc, n, timeStep, cellTypeTree.head(), cellTypeTree, currentStates, cellTypesRecord, noiseDisp, convergenceThreshold, maxNumIterations, convDistAvgNum, numToSample, geneMeanLevels, showPlots, cellDevelopmentMode, totalCellIterations)
+	findAllNextStates(gc, n, timeStep, cellTypeTree.head(), cellTypeTree, currentStates, cellTypesRecord, noiseDisp, convergenceThreshold, maxNumIterations, convDistAvgNum, cellsToSample, geneMeanLevels, showCellPlots, cellDevelopmentMode, totalCellIterations)
 	finalCellStates = currentStates
 	print("Final Cell States Before Transformations: \n", finalCellStates)
 

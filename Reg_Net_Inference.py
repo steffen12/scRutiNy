@@ -109,6 +109,10 @@ def readCellStatesReal():
 
 	return(n, cells, cellStates, pseudotimes, cellTypesRecord, W_real)
 
+def normalizePseudotimes(pseudotimes):
+	pseudotimes /= np.max(pseudotimes)
+	return(pseudotimes)
+
 def lasso_regression(data, y_vals, alpha, models_to_plot={}):
     #Fit the model
     lassoreg = Lasso(alpha=alpha, max_iter=1e5, fit_intercept = False)
@@ -752,6 +756,7 @@ def main():
 	#pseudotimeOffset = 0 #Make this as small as can be
 
 	n, cells, cellStates, pseudotimes, cellTypesRecord, W_real = readCellStates()
+	pseudotimes = normalizePseudotimes(pseudotimes)
 	print("Num genes: ", n, ", num cells: ", cells)
 	print("Num TF Connections: ", np.flatnonzero(W_real).size)
 	print("Pseudotimes: ", pseudotimes)
