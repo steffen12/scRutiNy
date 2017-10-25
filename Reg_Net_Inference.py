@@ -29,11 +29,12 @@ from collections import Counter
 #plotly.tools.set_credentials_file(username='steffen12', api_key='EMPLQR8c6OkDVDwR1p9k')
 
 def main():
+	#Set target directory (which contains input data)
 	targetDirectory = "/home/steffen12/NIH_Internship/"
 	os.chdir(targetDirectory)
 
 	#Control alpha used in Lasso
-	alphaMax = 1e-1
+	alphaMax = 1e-3
 	alphaMin = 1e-4
 	alphaMultStep = 1.0/2
 
@@ -44,15 +45,16 @@ def main():
 	numCVPartitions = 5
 
 	#The size of the sliding window used for averaging states across pseudotime
-	windowSize = 100
+	windowSize = 30
 
-	#pseudotimeOffset = 0 #Make this as small as can be
-
+	#Set perplexity for t-SNE
 	perplexity = 30
 
 	#DBscan parameters for clustering
 	epsilon = 0.05#2e-4 #1.5
-	min_samples = 3 #7
+	min_samples = 2 #7
+
+	#pseudotimeOffset = 0 #Make this as small as can be
 
 	n, cells, cellStates, pseudotimes, cellTypesRecord, W_real = readCellStates()
 	pseudotimes = normalizePseudotimes(pseudotimes)
@@ -69,8 +71,8 @@ def main():
 		#plotGeneOverPseudotime(plotGene, pseudotimes, cellStates)
 		pass
 
-	crossValidateData(n, cells, numCVPartitions, alphaMin, alphaMax, alphaMultStep, pseudotimeThresh, cellStates, pseudotimes, cellTypesRecord, W_real, geneClusters)
-	
+	optW = crossValidateData(n, cells, numCVPartitions, alphaMin, alphaMax, alphaMultStep, pseudotimeThresh, cellStates, pseudotimes, cellTypesRecord, W_real, geneClusters)
+	saveW(optW) #Save to output file W_Output.npy
 	#showWGraph(n, W_real)
 	#showWGraph(n, W)
 
@@ -100,11 +102,11 @@ def readCellStates():
 def convertToS(n, cells, cellStates):
 	for cellNum in range(cells):
 		cellRankings = rankdata(cellStates[:, cellNum])
-		cellStates[:, cellNum] = (2 * (cellRankings + 1)/(n) - 1)
+		cellStates[:, cellNum] = (2 * ((cellRankings + 1)/(n)) - 1)
 
 	for geneNum in range(n):
 		geneRankings = rankdata(cellStates[geneNum, :])
-		cellStates[geneNum, :] = (2 * (geneRankings + 1)/(cells) - 1)
+		cellStates[geneNum, :] = (2 * ((geneRankings + 1)/(cells)) - 1)
 
 	return(cellStates)
 
@@ -246,7 +248,7 @@ def clusterGenes(n, cells, cellStates, perplexity, epsilon, min_samples):
 	sc = ax.scatter(tsneResult[:,0], tsneResult[:,1], lw=0, s=40, c=palette[labels.astype(np.int)])
 	ax.axis('off')
 	ax.axis('tight')
-	#plt.show()
+	plt.show()
 
 	return(labels)
 
@@ -369,6 +371,8 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 	print("Specificity Mean and Sd: ", np.mean(specificityArray), ", ", np.std(specificityArray))
 	print("Precision Mean and Sd: ", np.mean(precisionArray), ", ", np.std(precisionArray))
 	print("W Sd: ", np.mean(np.std(W_array, axis=2)))
+
+	return optW
 
 def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeThresh, pseudotimesNew, alpha):
 	#T = np.load("T.npy")#
@@ -687,6 +691,7 @@ def compareToRealW(n, W, W_real, geneClusters):
 				trueNegatives += 1
 			elif(predictedVal == 1 and trueVal == 1):
 				truePositives += 1
+				print(i, clusterNum)
 			elif(predictedVal == 0 and trueVal == 1):
 				falseNegatives += 1
 			elif(predictedVal == 1 and trueVal == 0):
@@ -718,6 +723,8 @@ def plotROCCurve(n, W, W_real, geneClusters):
 	tpr, fpr = roc_metrics(n, geneClusters, W_real, W)
 	AUC = metrics.auc(fpr, tpr)
 	print("ROC AUC: ", AUC)
+	print("FPR: ", fpr)
+	print("TPR: ", tpr)
 	plt.plot(fpr, tpr)
 	plt.title("ROC Curve")
 	plt.show()
@@ -767,9 +774,9 @@ def roc_metrics(n, geneClusters, W_real, W):
 			negativePredictiveValue = float(trueNegatives) / (trueNegatives + falseNegatives)
 			accuracy = float(truePositives + trueNegatives) / (truePositives + falseNegatives + trueNegatives + falsePositives)
 
-			print("Sensitivity/Recall: ", sensitivity, ", Specificity: ", specificity)
-			print("Precision: ", precision, ", Negative Predictive Value: ", negativePredictiveValue)
-			print("Accuracy: ", accuracy)
+			#print("Sensitivity/Recall: ", sensitivity, ", Specificity: ", specificity)
+			#print("Precision: ", precision, ", Negative Predictive Value: ", negativePredictiveValue)
+			#print("Accuracy: ", accuracy)
 
 			tprList.append(sensitivity)
 			fprList.append(1-specificity)
@@ -800,5 +807,8 @@ def plotGeneOverPseudotime(gene, pseudotimes, cellStates):
 	plt.title("Gene " + str(gene) + " over Pseudotime")
 	plt.scatter(pseudotimes[sortedIndexes], cellStates[gene, sortedIndexes])
 	plt.show()
+
+def saveW(W):
+	np.save(W, "W_Output.npy")
 
 main()

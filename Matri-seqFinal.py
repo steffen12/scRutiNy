@@ -30,7 +30,7 @@ def main():
 	###Step 1 - Select the parameters to determine W#
 
 	#n is the number of genes, W will be a nxn matrix
-	n = 200 #19027
+	n = 700 #19027
 	#cells = 100 #864
 
 	#SimulatedPowerLaw - Simulated power law network with powerLawExponent as parameter
@@ -45,7 +45,7 @@ def main():
 	###Step 2 - Choose the minimum value of alpha (alpha must be greater than or equal to 0)#
 	#and the maximum value of the Beta distribution alpha and beta parameters###
 
-	initialAlpha = 1 #Set to 0 otherwise
+	initialAlpha = 0.01 #Set to 0 otherwise
 	maxAlphaBeta = 10
 
 	###Choose whether to divide each row of W by the number of connections:###
@@ -59,7 +59,7 @@ def main():
 
 	cellTypeNumCells = [200] #[100, 100, 100, 300, 300, 300, 300]
 	cellTypeParents = [-1]#[-1, 0, 0, 1, 1, 2, 2]
-	cellTypeConstProps = [0.05] #[0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
+	cellTypeConstProps = [0.00] #[0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05] #Inherited
 	cellTypeMeans = [0] #Not inherited, feature not available in current version
 
 	###Step 4 - Choose the timeStep, noise, convergence, and iteration sampling parameters:###
