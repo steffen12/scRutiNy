@@ -1,0 +1,12 @@
+Metadata-Version: 1.0
+Name: RNAscrutiny
+Version: 0.4
+Summary: Generative models from scRNA-seq data.
+Home-page: http://www.google.com
+Author: Steffen K Cromwell, Joseph P McKena, Vipul Periwal
+Author-email: joepatmckenna@gmail.com
+License: MIT
+Description-Content-Type: UNKNOWN
+Description: UNKNOWN
+Keywords: generative single cell RNA sequencing transcriptomics genomics
+Platform: UNKNOWN

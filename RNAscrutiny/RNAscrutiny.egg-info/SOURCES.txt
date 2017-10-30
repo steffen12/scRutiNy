@@ -1,0 +1,11 @@
+README.md
+setup.py
+RNAscrutiny/Matri-seq.py
+RNAscrutiny/RNAscrutiny.py
+RNAscrutiny/__init__.py
+RNAscrutiny.egg-info/PKG-INFO
+RNAscrutiny.egg-info/SOURCES.txt
+RNAscrutiny.egg-info/dependency_links.txt
+RNAscrutiny.egg-info/not-zip-safe
+RNAscrutiny.egg-info/requires.txt
+RNAscrutiny.egg-info/top_level.txt
