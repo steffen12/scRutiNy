@@ -50,7 +50,7 @@ def main():
 	#Set perplexity for t-SNE
 	perplexity = 30
 
-	#DBscan parameters for clustering
+	#DBscan parameters for clustering of genes
 	epsilon = 0.05#2e-4 #1.5
 	min_samples = 2 #7
 
