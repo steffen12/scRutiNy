@@ -100,9 +100,8 @@ html_theme_path = ['./_theme']
 #
 # html_theme_options = {}
 html_theme_options = {
-    'rootlinks': (("https://www.google.com", "LBM"),
-                  ("https://pypi.python.org/pypi/normal-forms/0.1",
-                   "RNAscrutiny"))
+    'rootlinks': (("https://lbm.niddk.nih.gov", "LBM"),
+                  ("https://pypi.python.org/pypi/RNAscrutiny", "RNAscrutiny"))
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -159,7 +158,8 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, 'RNAscrutiny', u'RNAscrutiny Documentation', [author], 1)]
+man_pages = [(master_doc, 'RNAscrutiny', u'RNAscrutiny Documentation',
+              [author], 1)]
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -167,6 +167,6 @@ man_pages = [(master_doc, 'RNAscrutiny', u'RNAscrutiny Documentation', [author],
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'RNAscrutiny', u'RNAscrutiny Documentation', author, 'RNAscrutiny',
-     'One line description of project.', 'Miscellaneous'),
+    (master_doc, 'RNAscrutiny', u'RNAscrutiny Documentation', author,
+     'RNAscrutiny', 'One line description of project.', 'Miscellaneous'),
 ]

@@ -1,8 +1,8 @@
 Metadata-Version: 1.0
 Name: RNAscrutiny
-Version: 0.4
+Version: 0.8
 Summary: Generative models from scRNA-seq data.
-Home-page: http://www.google.com
+Home-page: http://lbm.niddk.nih.gov/mckennajp/RNAscrutiny
 Author: Steffen K Cromwell, Joseph P McKena, Vipul Periwal
 Author-email: joepatmckenna@gmail.com
 License: MIT

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>Matri-seq Example &mdash; RNAscrutiny 0.0 documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="_static/css/spc-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="_static/css/spc-extend.css">
+    <link rel="stylesheet" href="_static/scipy.css" type="text/css" >
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" >
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" >
+    <link rel="search" title="Search" href="search.html" >
+    <link rel="top" title="RNAscrutiny 0.0 documentation" href="index.html" >
+    <link rel="prev" title="Welcome to RNAscrutiny’s documentation!" href="index.html" > 
+  </head>
+  <body>
+
+  <div class="container">
+    <div class="header">
+    </div>
+  </div>
+
+
+    <div class="container">
+      <div class="main">
+        
+	<div class="row-fluid">
+	  <div class="span12">
+	    <div class="spc-navbar">
+              
+    <ul class="nav nav-pills pull-left">
+        <li class="active"><a href="https://lbm.niddk.nih.gov">LBM</a></li>
+        <li class="active"><a href="https://pypi.python.org/pypi/RNAscrutiny">RNAscrutiny</a></li>
+	
+        <li class="active"><a href="index.html">RNAscrutiny 0.0 documentation</a></li>
+	 
+    </ul>
+              
+              
+    <ul class="nav nav-pills pull-right">
+      <li class="active">
+        <a href="genindex.html" title="General Index"
+           accesskey="I">index</a>
+      </li>
+      <li class="active">
+        <a href="py-modindex.html" title="Python Module Index"
+           >modules</a>
+      </li>
+      <li class="active">
+        <a href="index.html" title="Welcome to RNAscrutiny’s documentation!"
+           accesskey="P">previous</a>
+      </li>
+    </ul>
+              
+	    </div>
+	  </div>
+	</div>
+        
+
+	<div class="row-fluid">
+      <div class="spc-rightsidebar span3">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to RNAscrutiny’s documentation!</a></p>
+  <h3>This Page</h3>
+  <div>
+    <a href="_sources/generative.rst.txt"
+       rel="nofollow">Show Source</a>
+  </div>
+<div class="this-page-menu">
+  <a href="/scipy/docs/scipy-docs/generative.rst.rst">Edit page</a>
+</div>
+
+        </div>
+      </div>
+          <div class="span9">
+            
+        <div class="bodywrapper">
+          <div class="body" id="spc-section-body">
+            
+  <div class="section" id="matri-seq-example">
+<h1>Matri-seq Example<a class="headerlink" href="#matri-seq-example" title="Permalink to this headline">¶</a></h1>
+<p>Import the <cite>RNAscrutiny</cite> package and initialize with <cite>init</cite> function. Here, we set the output directory to a new directory with the current timestamp, and we set the verbosity of the package to <cite>False</cite>.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">RNAscrutiny</span> <span class="kn">as</span> <span class="nn">scrutiny</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">outputDir</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_%m_%Y-%H:%M:%S&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Use the <cite>generateCorrlationMatrix</cite> function to generate a gene correlation matrix. The <cite>networkStructure</cite> can be one of <cite>SimulatedPowerLaw</cite>, <cite>TRRUST</cite>, or <cite>Random</cite>. <cite>n</cite> denotes the number of genes.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">networkStructure</span> <span class="o">=</span> <span class="s1">&#39;SimulatedPowerLaw&#39;</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">700</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">gc</span><span class="p">,</span> <span class="n">tf</span> <span class="o">=</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">generateGeneCorrelationMatrix</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">networkStructure</span><span class="o">=</span><span class="n">networkStructure</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Represent the cell development as a tree with the <cite>formCellTypeTree</cite> function.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">cells</span> <span class="o">=</span> <span class="mi">200</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">cellTypeTree</span><span class="p">,</span> <span class="n">projMatrix</span><span class="p">,</span> <span class="n">constMatrix</span> <span class="o">=</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">formCellTypeTree</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span> <span class="n">cellTypeParents</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">cellTypeNumCells</span><span class="o">=</span><span class="p">[</span><span class="mi">200</span><span class="p">],</span> <span class="n">cellTypeConstProps</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">transcriptionFactors</span><span class="o">=</span><span class="n">tf</span><span class="p">,</span> <span class="n">cellTypeMeans</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Determine the minmum value of alpha that allows convergence of the cell states.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">initialStates</span> <span class="o">=</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">generateInitialStates</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">alpha</span> <span class="o">=</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">findOptimalAlpha</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">gc</span><span class="p">,</span> <span class="n">cellTypeTree</span><span class="p">,</span> <span class="n">initialStates</span><span class="p">,</span> <span class="n">numToSample</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">gc</span> <span class="o">/=</span> <span class="n">alpha</span>
+</pre></div>
+</div>
+<p>Recurse over cell type tree to develop cells.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="n">currentStates</span> <span class="o">=</span> <span class="n">initialStates</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="n">cellTypesRecord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">14</span><span class="p">]:</span> <span class="n">totalCellIterations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">15</span><span class="p">]:</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">findAllNextStates</span><span class="p">(</span><span class="n">gc</span><span class="p">,</span> <span class="n">cellTypeTree</span><span class="o">.</span><span class="n">head</span><span class="p">(),</span> <span class="n">cellTypeTree</span><span class="p">,</span> <span class="n">currentStates</span><span class="p">,</span> <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">totalCellIterations</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="n">finalCellStates</span> <span class="o">=</span> <span class="n">currentStates</span>
+</pre></div>
+</div>
+<p>Output plots to the output directory set above.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">17</span><span class="p">]:</span> <span class="n">cellSizeFactors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">18</span><span class="p">]:</span> <span class="n">timeStep</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">19</span><span class="p">]:</span> <span class="n">pseudotimes</span> <span class="o">=</span> <span class="n">timeStep</span> <span class="o">*</span> <span class="n">totalCellIterations</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">20</span><span class="p">]:</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">analyzeDataBeforeTransformation</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">finalCellStates</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">,</span> <span class="n">networkStructure</span><span class="o">=</span><span class="n">networkStructure</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Get the final cell states</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">21</span><span class="p">]:</span> <span class="n">finalCellStates</span><span class="p">,</span> <span class="n">cellSizeFactors</span> <span class="o">=</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">transformData</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">finalCellStates</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output plots to the output directory set above:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">22</span><span class="p">]:</span> <span class="n">scrutiny</span><span class="o">.</span><span class="n">analyzeSCRNAseqData</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">finalCellStates</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container container-navbar-bottom">
+      <div class="spc-navbar">
+        
+      </div>
+    </div>
+    <div class="container">
+    <div class="footer">
+    <div class="row-fluid">
+    <ul class="inline pull-left">
+      <li>
+        &copy; Copyright 2017, Steffen K Cornwell, Joseph P McKenna, Vipul Periwal.
+      </li>
+      <li>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5.
+      </li>
+    </ul>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

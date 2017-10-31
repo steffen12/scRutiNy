@@ -6,38 +6,60 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from tree import Tree
 
+__outputDir = None
+__verbose = None
+
+
+def init(outputDir='./RNAscrutiny-output',
+         seed=np.random.randint(1e8),
+         verbose=False):
+
+    global __outputDir
+    global __verbose
+
+    # set output directory
+    __outputDir = outputDir
+    try:
+        os.makedirs(outputDir)
+    except:
+        raise Exception('Unable to create output directory.')
+
+    # seed random number generators
+    np.random.seed(seed)
+    random.seed(seed)
+
+    # set verbosity
+    __verbose = verbose
+
 
 def generateGeneCorrelationMatrix(n,
-                                  networkStructure='SimulatedPowerLaw',
+                                  networkStructure='TRRUST',
                                   maxAlphaBeta=10,
                                   normalizeWRows=False,
                                   powerLawExponent=2.05,
-                                  networkSparsity=0.999,
-                                  saveFolder=None):
+                                  networkSparsity=0.999):
     """Generate correlation matrix of gene regulatory network.
 
     Parameters
     ----------
     n : int
         number of genes
-    maxAlphaBeta : float
-        Maximum value of the beta distribution alpha and beta parameters.
-    normalizeWRows : logical
-        Choose whether to divide each row of :math:`W` by the number of connections.
     networkStructure : string
-        Type of network structure, must be one of 'SimulatedPowerLaw', 'TRRUST', 'Random'.
+        type of network structure, must be one of 'SimulatedPowerLaw', 'TRRUST', 'Random'
+    maxAlphaBeta : float
+        maximum value of the beta distribution alpha and beta parameters
+    normalizeWRows : logical
+        choose whether to divide each row of :math:`W` by the number of connections
     powerLawExponent : float
-        Exponent for simulated power law network, higher values imply more connections, recommended value between 2 and 3.
+        exponent for simulated power law network, higher values imply more connections, recommended value between 2 and 3
     networkSparsity : float
-        Fraction of genes unrelated in network.
-    saveFolder : string
-        Name of output directory.
+        fraction of genes unrelated in network.
 
     Returns
     -------
     gc : ndarray(n,n)
         Gene correlation matrix, entry i,j is the correlation between genes i and j.
-    transcriptionFactors : ndarray(*,)
+    tf : ndarray(*,)
         List of transcription factors. A transcription factor is defined as a gene with a nonzero outdegree in the gene network.
     """
 
@@ -45,48 +67,41 @@ def generateGeneCorrelationMatrix(n,
     networkMatrix = np.zeros(shape=(n, n))
 
     # Generate the network structure
-    if (networkStructure == "SimulatedPowerLaw"):
+    if networkStructure == "SimulatedPowerLaw":
 
         #Generate number of in and out connections per gene
-        inConnections = [
-            int((1.0 / 2.0) * math.pow(1 - np.random.uniform(), -1 /
-                                       (powerLawExponent - 1)) + 1 / (2.0))
-            for i in range(n)
-        ]
-        outConnections = [
-            int((1 / 2.0) * math.pow(1 - np.random.uniform(), -1 /
-                                     (powerLawExponent - 1)) + 1 / (2.0))
-            for i in range(n)
-        ]
+        inConnections = np.empty(n, dtype=int)
+        outConnections = np.empty(n, dtype=int)
+        for i in range(n):
+            inConnections[i] = int(0.5 * (1 - np.random.uniform())**
+                                   (-1 / (powerLawExponent - 1)) + 0.5)
+            outConnections[i] = int(0.5 * (1 - np.random.uniform())**
+                                    (-1 / (powerLawExponent - 1)) + 0.5)
 
         # Make sure number of in and out connections is not greater than the number of genes
-        for i in range(n):
-            if (inConnections[i] > n):
-                inConnections[i] = n
-            if (outConnections[i] > n):
-                outConnections[i] = n
+        inConnections[inConnections > n] = n
+        outConnections[outConnections > n] = n
 
-        # Set up a multiset of the number of outconnections each gene has,
+        # Set up a multiset of the number of outconnections each gene has
         # then, for each gene, sample the inconnections from
         # the multiset of outconnections and remove duplicates
         outNodesSamplePool = []
         for col in range(n):
-            numOutConnection = outConnections[col]
-            outNodesSamplePool += [col] * numOutConnection
+            outNodesSamplePool += [col] * outConnections[col]
 
         for row in range(n):
-            numInConnections = inConnections[row]
             connectionIndexes = random.sample(outNodesSamplePool,
-                                              numInConnections)
+                                              inConnections[row])
             connectionIndexes = list(set(connectionIndexes))
             networkMatrix[row, connectionIndexes] = 1
 
-    elif (networkStructure == "TRRUST"):
-        # This file must be downloaded, or it can be generated by using the final AnalyzeTRRUST.py and the original file
-        networkMatrix = np.load("TRRUST_Network.npy")
+    elif networkStructure == "TRRUST":
+        # This can be generated by using AnalyzeTRRUST.py and the original file
+        networkMatrix = np.load(
+            os.path.join(os.path.split(__file__)[0], 'TRRUST_Network.npy'))
         n = networkMatrix.shape[0]
 
-    elif (networkStructure == "Random"):
+    elif networkStructure == "Random":
         #Randomly generate network using sparsity and binomial distribution for the number of in connections per gene
         for row in range(n):
             numInConnections = np.random.binomial(n, (1 - networkSparsity))
@@ -95,7 +110,7 @@ def generateGeneCorrelationMatrix(n,
 
     else:
         raise Exception(
-            'Invalid Network Structure. Parameter "networkStructure" must be one of "SimulatedPowerLaw", "TRRUST", or "Random".'
+            'Invalid network structure. Parameter "networkStructure" must be one of "SimulatedPowerLaw", "TRRUST", or "Random".'
         )
 
     valueMatrix = np.zeros(shape=(n, n))
@@ -104,29 +119,25 @@ def generateGeneCorrelationMatrix(n,
     # alpha and beta in the range [0, 1, 2, ... , maxAlphaBeta],
     # then transform the actual values from the (0, 1) range to the (-1, 1) range
     for col in range(n):
-        alpha = int(maxAlphaBeta * np.random.uniform() +
-                    1)  # alpha = np.random.randint(0, maxAlphaBeta)
-        beta = int(maxAlphaBeta * np.random.uniform() + 1)
-        valueMatrix[col, :] = (
-            2 * np.random.randint(0, 2) - 1) * np.random.beta(
-                a=alpha, b=beta, size=n)
+        alpha = np.random.randint(1, maxAlphaBeta + 1)
+        beta = np.random.randint(1, maxAlphaBeta + 1)
+        valueMatrix[col, :] = np.random.choice([-1.0, 1.0]) * np.random.beta(
+            a=alpha, b=beta, size=n)
 
     # Element-wise multiply network structure matrix and value matrix
-    gc = np.multiply(networkMatrix,
-                     valueMatrix)  # gc = networkMatrix*valueMatrix
+    gc = networkMatrix * valueMatrix
 
     # If set to true, will divide each value of each row (in connections) by the number of connections
-    if (normalizeWRows):
-        for row in range(n):
-            if (np.count_nonzero(gc[row, :]) != 0):
-                gc[row, :] = gc[row, :] / np.count_nonzero(
-                    gc[row, :])  # Normalize by number of connections per row
+    if normalizeWRows:
+        rowCount = np.count_nonzero(gc, axis=1)
+        rowCount[rowCount == 0] = 1
+        gc /= rowCount[:, np.newaxis]
 
     # Transcription Factors are defined as genes with a nonzero outdegree
     outDegrees = np.sum(networkMatrix, axis=0)
-    transcriptionFactors = np.nonzero(outDegrees)[0]
+    tf = np.nonzero(outDegrees)[0]
 
-    if saveFolder is not None:
+    if __outputDir is not None:
 
         inDegrees = np.sum(networkMatrix, axis=1)
         outDegrees = np.sum(networkMatrix, axis=0)
@@ -139,9 +150,9 @@ def generateGeneCorrelationMatrix(n,
         ax.hist(inDegrees, bins=100, range=[0, 100])
         ax.set_xlabel("Indegree")
         ax.set_ylabel("Frequency")
-        inDegreeString = os.path.join(
-            saveFolder, networkStructure + "_Network_Indegree.tiff")
-        plt.savefig(inDegreeString)
+        plt.savefig(
+            os.path.join(__outputDir, networkStructure +
+                         "_Network_Indegree.tiff"))
         plt.close()
 
         fig = plt.figure()
@@ -149,17 +160,17 @@ def generateGeneCorrelationMatrix(n,
         ax.hist(outDegrees, bins=100, range=[0, 100])
         ax.set_xlabel("Outdegree")
         ax.set_ylabel("Frequency")
-        outDegreeString = os.path.join(
-            saveFolder, networkStructure + "_Network_Outdegree.tiff")
-        plt.savefig(outDegreeString)
+        plt.savefig(
+            os.path.join(__outputDir, networkStructure +
+                         "_Network_Outdegree.tiff"))
         plt.close()
 
-    # print("Number of Connections: ", np.count_nonzero(networkMatrix.flatten()))
-    # sparsityProportion = float(np.count_nonzero(networkMatrix.flatten())) / (
-    #     n**2)
-    # print("Network Density: ", sparsityProportion)
+    if __verbose:
+        print("Number of Connections: ", np.count_nonzero(networkMatrix))
+        sparsityProportion = float(np.count_nonzero(networkMatrix)) / n**2
+        print("Network Density: ", sparsityProportion)
 
-    return n, gc, transcriptionFactors
+    return gc, tf
 
 
 def formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells,
@@ -168,21 +179,28 @@ def formCellTypeTree(n, cells, cellTypeParents, cellTypeNumCells,
     Parameters
     ----------
     n : int
-        Number of genes.
+        number of genes
     cells : int
-        Number of cells.
+        number of cells
     cellTypeParents :
+        the value of index `i` is the parent of cell type `i`
     cellTypeNumCells :
+        the value of index `i` is the number of cells of type `i` to end up with
     cellTypeConstProps :
+        proportion of transcription factors to set constant indexed by cell type
     transcriptionFactors :
-    cellTypeMeans :
+        list of genes with positive outdegree
 
     Returns
     -------
 	cellTypeTree :
+        a tree representation of cell development
     projMatrix :
+        collection of 0/1 projection vectors, one for each cell type
     constMatrix :
+        collection of constant vectors, one for each cell type
     """
+
     cellTypeTree = Tree()
 
     parentCellType = -1
@@ -233,10 +251,11 @@ def addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers,
     Parameters
     ----------
     n : int
-        Number of genes
+        number of genes
     cellTypeTree : tree
-        A tree representation of the cell types
+        tree representation of the cell development
     cellTypeParents :
+        the value at index `i` is the parent type of cell type `i`
     cellTypeMembers :
     cellTypeConstProps :
     projInit :
@@ -280,24 +299,28 @@ def addTreeChildren(n, cellTypeTree, cellTypeParents, cellTypeMembers,
 
 
 def getNextProjConst(n, projInit, constInit, constProp, transcriptionFactors):
-    """
-    Generate projection and constant vectors for next cell type
+    """Generate new projection and constant vectors
 
 
     Parameters
     ----------
     n : int
         number of genes
-    projInit : ndarray
-    constInit : ndarray
+    projInit : ndarray(n)
+        initial projection vector
+    constInit : ndarray(n)
+        initial constant vector
     constProp : float
-    transcriptionFactors : ndarray
+        proportion of entries of constant vector to be changed
+    transcriptionFactors : ndarray(*)
+        list of genes with positive outdegree
 
     Returns
     -------
-    proj : ndarray
+    proj : ndarray(n)
+        new projection vector
     const : ndarray
-
+        new const vector
     """
     numZeros = int(len(transcriptionFactors) *
                    constProp)  #np.random.binomial(n, constProp, 1)[0]
@@ -316,17 +339,16 @@ def getNextProjConst(n, projInit, constInit, constProp, transcriptionFactors):
 
 
 def generateInitialStates(n, cells, sameInitialCell=True, geneMeanLevels=0):
-    """
-    Randomly generate an initial gene expression state, and use it for all the cells.
+    """Generate initial gene expression state
 
     Parameters
     ----------
     n : int
-        Number of genes
+        number of genes
     cells : int
-        Number of cells
+        number of cells
     sameInitialCell : logical
-        If true, use same initial state for each cell, otherwise generate different initial state for each cell.
+        if true, use same initial state for each cell, otherwise generate different initial state for each cell
 
     Returns
     -------
@@ -355,13 +377,12 @@ def findOptimalAlpha(n,
                      maxNumIterations=500,
                      convDistAvgNum=20,
                      initialAlpha=0.01,
-                     alpha_step=0.02,
+                     alphaStep=0.02,
                      showAlphaGeneMeans=False,
                      geneMeanLevels=0):
-    """
-    Find alpha based on optimal development for progenitor cell type (parent = -1)
+    """Find smallest :math:`alpha` large enough to allow convergence
 
-    Paramters
+    Parameters
     ---------
     n : int
         Number of genes
@@ -374,14 +395,19 @@ def findOptimalAlpha(n,
     numToSample : int
         number of cells to sample, must be less than or equal to number of cells
     timeStep : float
+        time step for dynamics
     convergenceThreshold : float
+        threshold for S convergence
     noiseDisp : float
+        standard deviation of normal noise added to obtain new expression state
     maxNumIterations : int
         maximum numbe of iterations
-    convDistAvgNum : float
+    convDistAvgNum : int
+        number of states to average over to determine convergence
     initialAlpha : float
-    alpha_step : float
-    showAlphaGeneMeans : logical
+        initial value of :math:`alpha`
+    alphaStep : float
+        step size for incrementing :math:`alpha`
 
     Returns
     -------
@@ -393,8 +419,8 @@ def findOptimalAlpha(n,
     successRateNeeded = 1
     numSuccessesNeeded = int(numToSample * successRateNeeded)
     successRate = 0
-    if (initialAlpha >= alpha_step):
-        alpha = initialAlpha - alpha_step
+    if (initialAlpha >= alphaStep):
+        alpha = initialAlpha - alphaStep
     else:
         alpha = 0
     avgIterations = 0
@@ -422,9 +448,9 @@ def findOptimalAlpha(n,
         #Initialize these parameters at the start of every run of each alpha
         numSuccesses = 0
         if (successRate >
-                0):  #Slow down alpha_step once at least one cell converges
-            alpha_step = 0.01
-        alpha = alpha + alpha_step
+                0):  #Slow down alphaStep once at least one cell converges
+            alphaStep = 0.01
+        alpha = alpha + alphaStep
         avgIterations = 0
 
         #For each cell being sampled
@@ -464,9 +490,10 @@ def findOptimalAlpha(n,
         successRate = numSuccesses / numToSample
         avgIterations = int(avgIterations / numToSample)
         avgIterations = avgIterations - convDistAvgNum  #Subtract iterations where it is below convergence distance
-        # print("Alpha: ", alpha)
-        # print("Success Rate: ", successRate)
-        # print("Average Iterations: ", avgIterations)
+        if __verbose:
+            print("Alpha: ", alpha)
+            print("Success Rate: ", successRate)
+            print("Average Iterations: ", avgIterations)
     #xVals = [x for x in range(0, cellIteration)]
     #plt.scatter(xVals, normDiffVals[0:cellIteration])
     #plt.plot(xVals, normDiffVals[0:cellIteration])
@@ -481,21 +508,24 @@ def developCell(n, gc, timeStep, initialState, proj, const, noiseDisp,
     Parameters
     ----------
     n : int
-        Number of genes
+        number of genes
     gc : ndarray(n,n)
         gene correlation matrix
     timeStep : float
         change in time for consecutive iterations
     initialState : ndarray()
         initial expression levels of the cells
-    proj :
-    const :
-    noiseDisp :
+    proj : ndarray(n)
+        projection vector
+    const : ndarray(n)
+        constant vector
+    noiseDisp : float
+        standard deviation of normal noise added to next state
 
     Returns
     -------
-    ndarray()
-
+    currentState : ndarray(n)
+        expression levels of genes
     """
     tau = np.ones(shape=n)
     nextState = np.tanh(
@@ -519,10 +549,24 @@ def findAllNextStates(gc,
                       convergenceThreshold=0.1,
                       maxNumIterations=500,
                       convDistAvgNum=20,
-                      numToSample=50,
+                      cellsToSample=50,
                       showPlots=False,
                       cellDevelopmentMode=True,
                       geneMeanLevels=0):
+    """Find all next states
+
+    Parameters
+    ----------
+    gc : ndarray(n,n)
+        gene correlation matrix
+    cellTypeNode :
+    cellTypeTree :
+    currentStates :
+    cellTypesRecord :
+    totalCellIterations :
+
+    """
+
     n = gc.shape[0]
     currentCellType = cellTypeNode.identifier
     cellTypeMembers = cellTypeNode.cellTypeMembers
@@ -540,7 +584,7 @@ def findAllNextStates(gc,
         cellTypeIterations = findOptimalIterations(
             n, gc, timeStep, cellTypeMembers, proj, const, geneMeanLevels,
             convergenceThreshold, noiseDisp, currentStates, maxNumIterations,
-            convDistAvgNum, numToSample)
+            convDistAvgNum, cellsToSample)
         for i in range(len(cellTypeMembers)):
             if cellDevelopmentMode:
                 cellIterations = np.random.randint(0, cellTypeIterations + 1)
@@ -574,6 +618,25 @@ def findOptimalIterations(n, gc, timeStep, cellTypeMembers, proj, const,
                           geneMeanLevels, convergenceThreshold, noiseDisp,
                           currentStates, maxNumIterations, convDistAvgNum,
                           numToSample):
+    """Find optimal iterations
+
+    n : int
+        number of genes
+    gc : ndarray(n,n)
+        gene correlation matrix
+    timeStep : float
+        dynamics time step
+    cellTypeMembers :
+    proj :
+    const :
+    geneMeanLevels :
+    convergenceThreshold :
+    noiseDisp :
+    currentStates :
+    maxNumIterations :
+    convDistAvgNum :
+    numToSample :
+    """
 
     #Initialize variables (not to be changed)
     avgIterations = 0
@@ -610,7 +673,8 @@ def findOptimalIterations(n, gc, timeStep, cellTypeMembers, proj, const,
         avgIterations += cellIteration
     avgIterations = int(avgIterations / numToSample)
     avgIterations = avgIterations - convDistAvgNum  #Subtract iterations where it is below convergence distance
-    # print("Average Iterations: ", avgIterations)
+    if __verbose:
+        print("Average Iterations: ", avgIterations)
     #xVals = [x for x in range(0, cellIteration)]
     #plt.scatter(xVals, normDiffVals[0:cellIteration])
     #plt.plot(xVals, normDiffVals[0:cellIteration])
@@ -620,6 +684,25 @@ def findOptimalIterations(n, gc, timeStep, cellTypeMembers, proj, const,
 
 def findCellNextState(gc, n, timeStep, i, proj, const, initialState,
                       cellIterations, noiseDisp, geneMeanLevels, showPlots):
+    """Find cell's next state
+
+    Parameters
+    ----------
+    gc : ndarray(n,n)
+        gene correlation matrix
+    n : int
+        number of genes
+    timeStep : float
+        dynamics time step
+    i :
+    proj :
+    const :
+    initialState :
+    cellIterations :
+    noiseDisp :
+    geneMeanLevels :
+    showPlots :
+    """
     normDiffVals = [0] * cellIterations
     currentState = initialState
 
@@ -655,13 +738,19 @@ def findCellNextState(gc, n, timeStep, i, proj, const, initialState,
     return (currentState)
 
 
-def analyzeDataBeforeTransformation(n,
-                                    cells,
-                                    finalCellStates,
-                                    alpha,
-                                    pseudotimes,
-                                    networkStructure,
-                                    saveFolder=None):
+def analyzeDataBeforeTransformation(n, cells, finalCellStates, alpha,
+                                    pseudotimes, networkStructure):
+    """Analyze data before transformation
+
+    n : int
+        number of genes
+    cells : int
+        number of cells
+    finalCellStates :
+    alpha :
+    pseudotimes :
+    networkStructure :
+    """
 
     randomGenes = np.random.randint(0, n, size=5)
 
@@ -676,12 +765,12 @@ def analyzeDataBeforeTransformation(n,
     else:
         testingString = ""
 
-    if saveFolder is not None:
+    if __outputDir is not None:
         fig = plt.figure()
         ax = plt.gca()
         SGeneMeans = np.mean(finalCellStates, axis=1)
         geneMeansString = os.path.join(
-            saveFolder, "S_Gene_Means" + testingString + ".tiff")
+            __outputDir, "S_Gene_Means" + testingString + ".tiff")
         ax.hist(SGeneMeans, bins=int(n / 50))
         ax.set_xlabel("S Gene Means")
         ax.set_ylabel("Frequency")
@@ -691,7 +780,7 @@ def analyzeDataBeforeTransformation(n,
         fig = plt.figure()
         ax = plt.gca()
         SGeneVars = np.var(finalCellStates, axis=1)
-        geneVarsString = os.path.join(saveFolder,
+        geneVarsString = os.path.join(__outputDir,
                                       "S_Gene_Vars" + testingString + ".tiff")
         ax.hist(SGeneVars, bins=int(n / 50))
         ax.set_xlabel("S Gene Variances")
@@ -703,21 +792,22 @@ def analyzeDataBeforeTransformation(n,
         ax = plt.gca()
         SCellMeans = np.mean(finalCellStates, axis=0)
         cellMeansString = os.path.join(
-            saveFolder, "S_Cell_Means" + testingString + ".tiff")
+            __outputDir, "S_Cell_Means" + testingString + ".tiff")
         ax.hist(SCellMeans, bins=int(cells / 10))
         ax.set_xlabel("S Cell Means")
         ax.set_ylabel("Frequency")
         plt.savefig(cellMeansString)
         plt.close()
 
-        # print("Random Genes Being Graphed: ", randomGenes)
+        if __verbose:
+            print("Random Genes Being Graphed: ", randomGenes)
 
         for randomGene in randomGenes:
             geneExpr = finalCellStates[randomGene, :]
             fig = plt.figure()
             ax = plt.gca()
             genePseudotimeString = os.path.join(
-                saveFolder, "Gene_" + str(randomGene) + "_Pseudotime" +
+                __outputDir, "Gene_" + str(randomGene) + "_Pseudotime" +
                 testingString + ".tiff")
             ax.scatter(pseudotimes, geneExpr)
             ax.set_xlabel("Pseudotime")
@@ -733,10 +823,33 @@ def transformData(n,
                   cellRadiusDisp=0.14,
                   geneScale=0.0,
                   expScale=1.0,
-                  expLambda=0.5,
+                  expLambda=0.0,
                   shape=0.35,
                   rate=0.19,
                   gammaDistMean=True):
+    """Transform data
+
+    Parameters
+    ----------
+    n : int
+        number of genes
+    cells : int
+        number of cells
+    finalCellStates :
+    dropoutProportion :
+    cellRadiusDisp :
+    geneScale :
+    expScale :
+    expLambda :
+    shape :
+    rate :
+    gammaDistMean :
+
+    Returns
+    -------
+    finalCellStates :
+    cellSizeFactors :
+    """
 
     originalGeneMeans = np.mean(finalCellStates, axis=1)
     geneMeanRankings = np.argsort(originalGeneMeans)
@@ -785,11 +898,24 @@ def analyzeSCRNAseqData(n,
                         cells,
                         cellTypesRecord,
                         finalCellStates,
-                        perplexityParam=30,
-                        saveFolder=None):
+                        perplexityParam=30):
+    """Analyze scRNA-seq data
+
+    Parameters
+    ----------
+    n : int
+        number of genes
+    cells : int
+        number of cells
+    cellTypesRecord : ndarray
+        record of cell types
+    finalCellStates : ndarray
+    perplexityParam : int
+    """
+
     cellTypeString = "All"
-    if saveFolder is not None:
-        plotSCRNAseqData(n, cells, finalCellStates, cellTypeString, saveFolder)
+    if __outputDir is not None:
+        plotSCRNAseqData(n, cells, finalCellStates, cellTypeString)
 
     cellTypesSet = list(set(cellTypesRecord))
     for cellTypeNum in cellTypesSet:
@@ -800,24 +926,25 @@ def analyzeSCRNAseqData(n,
         finalCellStatesOfType = finalCellStates[:, cellTypeIndices]
         plotSCRNAseqData(n,
                          len(cellTypeIndices), finalCellStatesOfType,
-                         cellTypeString, saveFolder)
+                         cellTypeString)
 
     pca = PCA(n_components=15)
     pcaFit = pca.fit(finalCellStates)
     pcaResult = pca.components_
-    # print("PCA Explained Var: ", pca.explained_variance_ratio_)
-    if saveFolder is not None:
+    if __verbose:
+        print("PCA Explained Var: ", pca.explained_variance_ratio_)
+    if __outputDir is not None:
         np.save(
-            os.path.join(saveFolder, "Variance_Explained"),
+            os.path.join(__outputDir, "Variance_Explained"),
             np.asarray(pca.explained_variance_ratio_))
     xVals = pcaResult[0, :]
     yVals = pcaResult[1, :]
 
-    if saveFolder is not None:
+    if __outputDir is not None:
         fig = plt.figure()
         ax = plt.gca()
         ax.plot(xVals, yVals, 'bo')
-        plt.savefig(os.path.join(saveFolder, "PCA"))
+        plt.savefig(os.path.join(__outputDir, "PCA"))
         plt.close()
 
     # model = TSNE(n_components=2, perplexity=perplexityParam)
@@ -843,16 +970,20 @@ def analyzeSCRNAseqData(n,
     # plt.savefig("t-SNE")
 
 
-def plotSCRNAseqData(n, cells, cellStates, cellTypeString, saveFolder):
+def plotSCRNAseqData(n, cells, cellStates, cellTypeString):
     """Plot scRNA-seq data
 
+    Parameters
+    ----------
     n : int
         Number of genes
     cells : int
         Number of cells
+    cellStates : ndarray
+    cellTypeString :
     """
     numBinsScalar = 1
-    newpath = os.path.join(saveFolder, "Cell_Type_" + cellTypeString)
+    newpath = os.path.join(__outputDir, "Cell_Type_" + cellTypeString)
     try:
         os.makedirs(newpath)
     except:
@@ -863,7 +994,7 @@ def plotSCRNAseqData(n, cells, cellStates, cellTypeString, saveFolder):
     ax = plt.gca()
     ax.hist(geneExpr, bins=int(cells / numBinsScalar))
     plt.title("Expression of Random Gene")
-    plt.savefig(os.path.join(saveFolder, "Expression_Of_Gene"))
+    plt.savefig(os.path.join(__outputDir, "Expression_Of_Gene"))
     plt.close()
 
     cellExpr = cellStates[:, int(np.random.uniform() * cells)]
@@ -871,7 +1002,7 @@ def plotSCRNAseqData(n, cells, cellStates, cellTypeString, saveFolder):
     ax = plt.gca()
     ax.hist(cellExpr, bins=int(n / numBinsScalar))
     plt.title("Expression of Random Cell")
-    plt.savefig(os.path.join(saveFolder, "Expression_Of_Cell"))
+    plt.savefig(os.path.join(__outputDir, "Expression_Of_Cell"))
     plt.close()
 
     geneMeansString = "Gene_Means_" + "Cell_Type_" + cellTypeString
@@ -882,15 +1013,15 @@ def plotSCRNAseqData(n, cells, cellStates, cellTypeString, saveFolder):
     ax = plt.gca()
     ax.hist(geneMeans, bins=int(n / numBinsScalar))
     plt.title("Gene Means")  #Change back to Log[10]
-    plt.savefig(os.path.join(saveFolder, geneMeansString))
+    plt.savefig(os.path.join(__outputDir, geneMeansString))
     plt.close()
 
     librarySizes = np.sum(cellStates, axis=0)
     fig = plt.figure()
     ax = plt.gca()
     ax.hist(librarySizes, bins=int(n / numBinsScalar))
-    plt.title(os.path.join(saveFolder, "Library Sizes"))
-    plt.savefig(librarySizesString)
+    plt.title(os.path.join(__outputDir, "Library Sizes"))
+    plt.savefig(os.path.join(__outputDir, librarySizesString))
     plt.close()
 
     numExpressedGenes = np.zeros(shape=int(cells))
@@ -899,6 +1030,6 @@ def plotSCRNAseqData(n, cells, cellStates, cellTypeString, saveFolder):
     fig = plt.figure()
     ax = plt.gca()
     ax.hist(numExpressedGenes, bins=int(n / numBinsScalar))
-    plt.title(os.path.join(saveFolder, "Num Expressed Genes"))
-    plt.savefig(numExpressedGenesString)
+    plt.title("Num Expressed Genes")
+    plt.savefig(os.path.join(__outputDir, numExpressedGenesString))
     plt.close()

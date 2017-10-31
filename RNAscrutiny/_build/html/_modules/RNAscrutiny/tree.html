@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>RNAscrutiny.tree &mdash; RNAscrutiny 0.0 documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="../../_static/css/spc-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../../_static/css/spc-extend.css">
+    <link rel="stylesheet" href="../../_static/scipy.css" type="text/css" >
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" >
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" >
+    <link rel="search" title="Search" href="../../search.html" >
+    <link rel="top" title="RNAscrutiny 0.0 documentation" href="../../index.html" >
+    <link rel="up" title="Module code" href="../index.html" > 
+  </head>
+  <body>
+
+  <div class="container">
+    <div class="header">
+    </div>
+  </div>
+
+
+    <div class="container">
+      <div class="main">
+        
+	<div class="row-fluid">
+	  <div class="span12">
+	    <div class="spc-navbar">
+              
+    <ul class="nav nav-pills pull-left">
+        <li class="active"><a href="https://lbm.niddk.nih.gov">LBM</a></li>
+        <li class="active"><a href="https://pypi.python.org/pypi/RNAscrutiny">RNAscrutiny</a></li>
+	
+        <li class="active"><a href="../../index.html">RNAscrutiny 0.0 documentation</a></li>
+	
+          <li class="active"><a href="../index.html" accesskey="U">Module code</a></li> 
+    </ul>
+              
+              
+    <ul class="nav nav-pills pull-right">
+      <li class="active">
+        <a href="../../genindex.html" title="General Index"
+           accesskey="I">index</a>
+      </li>
+      <li class="active">
+        <a href="../../py-modindex.html" title="Python Module Index"
+           >modules</a>
+      </li>
+    </ul>
+              
+	    </div>
+	  </div>
+	</div>
+        
+
+	<div class="row-fluid">
+      <div class="spc-rightsidebar span3">
+        <div class="sphinxsidebarwrapper">
+
+        </div>
+      </div>
+          <div class="span9">
+            
+        <div class="bodywrapper">
+          <div class="body" id="spc-section-body">
+            
+  <h1>Source code for RNAscrutiny.tree</h1><div class="highlight"><pre>
+<span></span><span class="p">(</span><span class="n">_ROOT</span><span class="p">,</span> <span class="n">_DEPTH</span><span class="p">,</span> <span class="n">_BREADTH</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">cellTypeMembers</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">cellTypeMean</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__identifier</span> <span class="o">=</span> <span class="n">identifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__children</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cellTypeMembers</span> <span class="o">=</span> <span class="n">cellTypeMembers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">const</span> <span class="o">=</span> <span class="n">const</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proj</span> <span class="o">=</span> <span class="n">proj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cellTypeMean</span> <span class="o">=</span> <span class="n">cellTypeMean</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">identifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__identifier</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__children</span>
+
+<div class="viewcode-block" id="Node.add_child"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Node.add_child">[docs]</a>    <span class="k">def</span> <span class="nf">add_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Node.setChildCellTypeMembers"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Node.setChildCellTypeMembers">[docs]</a>    <span class="k">def</span> <span class="nf">setChildCellTypeMembers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">childCellTypeMembers</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">childCellTypeMembers</span> <span class="o">=</span> <span class="n">childCellTypeMembers</span></div></div>
+
+
+<div class="viewcode-block" id="Tree"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Tree">[docs]</a><span class="k">class</span> <span class="nc">Tree</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__nodes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__head</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nodes</span>
+
+<div class="viewcode-block" id="Tree.head"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Tree.head">[docs]</a>    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__head</span></div>
+
+<div class="viewcode-block" id="Tree.add_head"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Tree.add_head">[docs]</a>    <span class="k">def</span> <span class="nf">add_head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">cellTypeMembers</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">cellTypeMean</span><span class="p">):</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">cellTypeMembers</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">cellTypeMean</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__head</span> <span class="o">=</span> <span class="n">node</span>
+
+        <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="Tree.add_node"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Tree.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">cellTypeMembers</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">cellTypeMean</span><span class="p">,</span>
+                 <span class="n">parent</span><span class="p">):</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">cellTypeMembers</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">cellTypeMean</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+
+        <span class="bp">self</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="Tree.display"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Tree.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">_ROOT</span><span class="p">):</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">children</span>
+        <span class="k">if</span> <span class="n">depth</span> <span class="o">==</span> <span class="n">_ROOT</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">identifier</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="n">depth</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">identifier</span><span class="p">))</span>
+
+        <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>  <span class="c1"># recursive call</span></div>
+
+<div class="viewcode-block" id="Tree.traverse"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.tree.Tree.traverse">[docs]</a>    <span class="k">def</span> <span class="nf">traverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">_DEPTH</span><span class="p">):</span>
+        <span class="c1"># Python generator. Loosly based on an algorithm from</span>
+        <span class="c1"># &#39;Essential LISP&#39; by John R. Anderson, Albert T. Corbett,</span>
+        <span class="c1"># and Brian J. Reiser, page 239-241</span>
+        <span class="k">yield</span> <span class="p">[</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">cellType Number: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">),</span>
+            <span class="s2">&quot;cellType Const: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">const</span><span class="p">),</span>
+            <span class="s2">&quot;cellType Proj: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">proj</span><span class="p">),</span>
+            <span class="s2">&quot;cellType Mean: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">cellTypeMean</span><span class="p">),</span>
+            <span class="s2">&quot;Num cellType Members: &quot;</span> <span class="o">+</span>
+            <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">cellTypeMembers</span><span class="p">)),</span>
+            <span class="s2">&quot;Num cellType Child Members: &quot;</span> <span class="o">+</span>
+            <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">childCellTypeMembers</span><span class="p">))</span>
+        <span class="p">]</span>
+        <span class="c1">#yield self[identifier].cellTypeIterations</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">children</span>
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">[</span>
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">cellType Number: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">queue</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="s2">&quot;cellType Const: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">queue</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">const</span><span class="p">),</span>
+                <span class="s2">&quot;cellType Proj: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">queue</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">proj</span><span class="p">),</span>
+                <span class="s2">&quot;cellType Mean: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">queue</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">cellTypeMean</span><span class="p">),</span>
+                <span class="s2">&quot;Num cellType Members: &quot;</span> <span class="o">+</span>
+                <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">queue</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">cellTypeMembers</span><span class="p">)),</span>
+                <span class="s2">&quot;Num cellType Child Members: &quot;</span> <span class="o">+</span>
+                <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">queue</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">childCellTypeMembers</span><span class="p">))</span>
+            <span class="p">]</span>
+            <span class="c1">#yield self[queue[0]].cellTypeIterations</span>
+            <span class="n">expansion</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">queue</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">children</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">_DEPTH</span><span class="p">:</span>
+                <span class="n">queue</span> <span class="o">=</span> <span class="n">expansion</span> <span class="o">+</span> <span class="n">queue</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># depth-first</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">_BREADTH</span><span class="p">:</span>
+                <span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">expansion</span>  <span class="c1"># width-first</span></div>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nodes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__nodes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span></div>
+</pre></div>
+
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container container-navbar-bottom">
+      <div class="spc-navbar">
+        
+      </div>
+    </div>
+    <div class="container">
+    <div class="footer">
+    <div class="row-fluid">
+    <ul class="inline pull-left">
+      <li>
+        &copy; Copyright 2017, Steffen K Cornwell, Joseph P McKenna, Vipul Periwal.
+      </li>
+      <li>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5.
+      </li>
+    </ul>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

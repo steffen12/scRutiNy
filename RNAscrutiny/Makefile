@@ -3,8 +3,8 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = scRNA-scrutiny
+SPHINXBUILD   = python -msphinx
+SPHINXPROJ    = RNAscrutiny
 SOURCEDIR     = .
 BUILDDIR      = _build
 

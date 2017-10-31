@@ -1,8 +1,10 @@
+MANIFEST.in
 README.md
 setup.py
-RNAscrutiny/Matri-seq.py
 RNAscrutiny/RNAscrutiny.py
+RNAscrutiny/TRRUST_Network.npy
 RNAscrutiny/__init__.py
+RNAscrutiny/tree.py
 RNAscrutiny.egg-info/PKG-INFO
 RNAscrutiny.egg-info/SOURCES.txt
 RNAscrutiny.egg-info/dependency_links.txt
