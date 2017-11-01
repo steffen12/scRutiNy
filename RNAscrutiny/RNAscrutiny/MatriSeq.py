@@ -10,12 +10,9 @@ __outputDir = None
 __verbose = None
 
 
-def init(outputDir='./RNAscrutiny-output',
-         seed=np.random.randint(1e8),
-         verbose=False):
+def init(outputDir='./RNAscrutiny-output', seed=1337, verbose=False):
 
-    global __outputDir
-    global __verbose
+    global __outputDir, verbose_
 
     # set output directory
     __outputDir = outputDir
@@ -29,7 +26,7 @@ def init(outputDir='./RNAscrutiny-output',
     random.seed(seed)
 
     # set verbosity
-    __verbose = verbose
+    verbose_ = verbose
 
 
 def generateGeneCorrelationMatrix(n,
@@ -165,7 +162,7 @@ def generateGeneCorrelationMatrix(n,
                          "_Network_Outdegree.tiff"))
         plt.close()
 
-    if __verbose:
+    if verbose_:
         print("Number of Connections: ", np.count_nonzero(networkMatrix))
         sparsityProportion = float(np.count_nonzero(networkMatrix)) / n**2
         print("Network Density: ", sparsityProportion)
@@ -490,7 +487,7 @@ def findOptimalAlpha(n,
         successRate = numSuccesses / numToSample
         avgIterations = int(avgIterations / numToSample)
         avgIterations = avgIterations - convDistAvgNum  #Subtract iterations where it is below convergence distance
-        if __verbose:
+        if verbose_:
             print("Alpha: ", alpha)
             print("Success Rate: ", successRate)
             print("Average Iterations: ", avgIterations)
@@ -673,7 +670,7 @@ def findOptimalIterations(n, gc, timeStep, cellTypeMembers, proj, const,
         avgIterations += cellIteration
     avgIterations = int(avgIterations / numToSample)
     avgIterations = avgIterations - convDistAvgNum  #Subtract iterations where it is below convergence distance
-    if __verbose:
+    if verbose_:
         print("Average Iterations: ", avgIterations)
     #xVals = [x for x in range(0, cellIteration)]
     #plt.scatter(xVals, normDiffVals[0:cellIteration])
@@ -799,7 +796,7 @@ def analyzeDataBeforeTransformation(n, cells, finalCellStates, alpha,
         plt.savefig(cellMeansString)
         plt.close()
 
-        if __verbose:
+        if verbose_:
             print("Random Genes Being Graphed: ", randomGenes)
 
         for randomGene in randomGenes:
@@ -931,7 +928,7 @@ def analyzeSCRNAseqData(n,
     pca = PCA(n_components=15)
     pcaFit = pca.fit(finalCellStates)
     pcaResult = pca.components_
-    if __verbose:
+    if verbose_:
         print("PCA Explained Var: ", pca.explained_variance_ratio_)
     if __outputDir is not None:
         np.save(

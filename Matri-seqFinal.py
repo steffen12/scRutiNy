@@ -27,7 +27,7 @@ def main():
 	R_Directory = "/home/steffen12/NIH_Internship/R_files/"
 	os.chdir(targetDirectory)
 
-	###Step 1 - Select the parameters to determine W#
+	###Step 1 - Select the parameters to determine W###
 
 	#n is the number of genes, W will be a nxn matrix
 	n = 700 #19027

@@ -1,1 +1,2 @@
-from RNAscrutiny import *
+import MatriSeq
+# import RegNetInference

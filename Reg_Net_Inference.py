@@ -33,28 +33,32 @@ def main():
 	targetDirectory = "/home/steffen12/NIH_Internship/"
 	os.chdir(targetDirectory)
 
-	#Control alpha used in Lasso
-	alphaMax = 1e-3
+	###Step 1 - Control the maximum pseudotime distance between pairs#
+
+	pseudotimeThresh = 0.10
+
+	###Step 2 - Select the size of the sliding window used for averaging states across pseudotime###
+
+	windowSize = 30
+
+	###Step 3 - Control the range of alpha values used in Lasso###
+
+	alphaMax = 1e-3 
 	alphaMin = 1e-4
 	alphaMultStep = 1.0/2
 
-	#Control the minimum pseudotime distance between pairs
-	pseudotimeThresh = 0.10 #0,20
+	###Step 4 - Select fold of cross validation done###
 
-	#What fold cross validation should be done?
 	numCVPartitions = 5
 
-	#The size of the sliding window used for averaging states across pseudotime
-	windowSize = 30
+	###Step 5 - Select DBSCAN parameters and perplexity for t-SNE###
+
+	#DBscan parameters for clustering of genes
+	epsilon = 0.05 #2e-4 #1.5
+	min_samples = 2 #7
 
 	#Set perplexity for t-SNE
 	perplexity = 30
-
-	#DBscan parameters for clustering of genes
-	epsilon = 0.05#2e-4 #1.5
-	min_samples = 2 #7
-
-	#pseudotimeOffset = 0 #Make this as small as can be
 
 	n, cells, cellStates, pseudotimes, cellTypesRecord, W_real = readCellStates()
 	pseudotimes = normalizePseudotimes(pseudotimes)
@@ -67,12 +71,12 @@ def main():
 
 	geneClusters = clusterGenes(n, cells, cellStates, perplexity, epsilon, min_samples)
 
-	for plotGene in range(n):
+	#for plotGene in range(n):
 		#plotGeneOverPseudotime(plotGene, pseudotimes, cellStates)
-		pass
 
 	optW = crossValidateData(n, cells, numCVPartitions, alphaMin, alphaMax, alphaMultStep, pseudotimeThresh, cellStates, pseudotimes, cellTypesRecord, W_real, geneClusters)
 	saveW(optW) #Save to output file W_Output.npy
+
 	#showWGraph(n, W_real)
 	#showWGraph(n, W)
 
@@ -283,6 +287,9 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 	precisionArray = np.zeros(numPartitions)
 	W_array = np.zeros(shape=(n,n,numPartitions))
 
+	totalMinMeanSquaredError = float("inf")
+	totalMinMeanSquaredErrorIndex = -1;
+
 	print("Cluster Membership: ", Counter(geneClusters))
 
 	cellIndices = [x for x in range(cells)]
@@ -355,6 +362,10 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 		precisionArray[partition] = optPrecision
 		W_array[:,:,partition] = optW
 
+		if(minMeanSquaredError < totalMinMeanSquaredError):
+			minMeanSquaredError = totalMinMeanSquaredError
+			totalMinMeanSquaredErrorIndex = partition
+
 		#W_cluster = getWClusterPred(n, optW, geneClusters)
 		#W_real_cluster = getWClusterReal(n, W_real, geneClusters)
 		#W_random_cluster = getWClusterPred(n, optW_random, geneClusters)
@@ -372,7 +383,9 @@ def crossValidateData(n, cells, numPartitions, alphaMin, alphaMax, alphaMultStep
 	print("Precision Mean and Sd: ", np.mean(precisionArray), ", ", np.std(precisionArray))
 	print("W Sd: ", np.mean(np.std(W_array, axis=2)))
 
-	return optW
+	finalW = W_array[:,:,totalMinMeanSquaredErrorIndex]
+
+	return finalW
 
 def findWMatrix(n, cells, W_real, cellStatesNew, cellTypesRecordNew, pseudotimeThresh, pseudotimesNew, alpha):
 	#T = np.load("T.npy")#
