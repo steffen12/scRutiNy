@@ -1,7 +1,8 @@
 MANIFEST.in
-README.md
+README.rst
 setup.py
-RNAscrutiny/RNAscrutiny.py
+RNAscrutiny/MatriSeq.py
+RNAscrutiny/RegNetInference.py
 RNAscrutiny/TRRUST_Network.npy
 RNAscrutiny/__init__.py
 RNAscrutiny/tree.py

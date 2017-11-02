@@ -3,22 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to RNAscrutiny's documentation!
-=======================================
+Welcome to scRutiNy's documentation!
+====================================
 
-This document describes how to use the Python package `RNAscrutiny`_ to analyze single-cell RNA-sequencing (scRNA-seq) data.
+This document describes how to use the Python package scRutiNy_ to analyze single-cell RNA-sequencing (scRNA-seq) data.
+
+.. toctree::
+   :maxdepth: 1
+
+   README
+   example
 
 The package contains two modules
 
-- `Matri-seq`: generate scRNA-seq data from a gene regulatory network correlation matrix.
-- `RegNetInference`: Infer the gene regulatory network correlation matrix from scRNA-seq data.
+- :class:`RNAscrutiny.MatriSeq` : generate scRNA-seq data from a gene regulatory network correlation matrix.
 
-Contents
-========
+- :class:`RNAscrutiny.RegNetInference` : Infer the gene regulatory network correlation matrix from scRNA-seq data.
 
-.. toctree::
-   :maxdepth: 2
-
-   generative
-
-.. _`RNAscrutiny`: https://pypi.python.org/pypi/RNAscrutiny
+.. _scRutiNy: https://pypi.python.org/pypi/RNAscrutiny

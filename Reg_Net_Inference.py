@@ -30,7 +30,8 @@ from collections import Counter
 
 def main():
 	#Set target directory (which contains input data)
-	targetDirectory = "/home/steffen12/NIH_Internship/"
+	# targetDirectory = "/home/steffen12/NIH_Internship/"
+	targetDirectory = "./"
 	os.chdir(targetDirectory)
 
 	###Step 1 - Control the maximum pseudotime distance between pairs#

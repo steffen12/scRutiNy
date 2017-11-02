@@ -2,14 +2,17 @@ from setuptools import setup
 
 setup(
     name='RNAscrutiny',
-    version='0.8',
-    description='Generative models from scRNA-seq data.',
-    keywords='generative single cell RNA sequencing transcriptomics genomics',
-    url='http://lbm.niddk.nih.gov/mckennajp/RNAscrutiny',
+    version='1.1',
+    description='Tool for simulating and analyzing scRNA-seq data.',
+    keywords=
+    'RNA single cell simulation inference generative genomics transcriptomics',
+    url='http://lbm.niddk.nih.gov/mckennajp/scRutiNy',
     author='Steffen K Cromwell, Joseph P McKena, Vipul Periwal',
     author_email='joepatmckenna@gmail.com',
     license='MIT',
     packages=['RNAscrutiny'],
-    install_requires=['numpy', 'matplotlib', 'sklearn'],
+    install_requires=[
+        'numpy', 'matplotlib', 'sklearn', 'rpy2', 'seaborn', 'networkx'
+    ],
     include_package_data=True,
     zip_safe=False)

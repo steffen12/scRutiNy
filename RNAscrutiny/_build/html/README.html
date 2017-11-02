@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>scRutiNy Manual &mdash; scRutiNy 1.0 documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="_static/css/spc-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="_static/css/spc-extend.css">
+    <link rel="stylesheet" href="_static/scipy.css" type="text/css" >
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" >
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" >
+    <link rel="search" title="Search" href="search.html" >
+    <link rel="top" title="scRutiNy 1.0 documentation" href="index.html" >
+    <link rel="next" title="Example Usage" href="example.html" >
+    <link rel="prev" title="Welcome to scRutiNy’s documentation!" href="index.html" > 
+  </head>
+  <body>
+
+  <div class="container">
+    <div class="header">
+    </div>
+  </div>
+
+
+    <div class="container">
+      <div class="main">
+        
+	<div class="row-fluid">
+	  <div class="span12">
+	    <div class="spc-navbar">
+              
+    <ul class="nav nav-pills pull-left">
+        <li class="active"><a href="https://lbm.niddk.nih.gov">LBM</a></li>
+        <li class="active"><a href="https://pypi.python.org/pypi/RNAscrutiny">scRutiNy</a></li>
+	
+        <li class="active"><a href="index.html">scRutiNy 1.0 documentation</a></li>
+	 
+    </ul>
+              
+              
+    <ul class="nav nav-pills pull-right">
+      <li class="active">
+        <a href="genindex.html" title="General Index"
+           accesskey="I">index</a>
+      </li>
+      <li class="active">
+        <a href="py-modindex.html" title="Python Module Index"
+           >modules</a>
+      </li>
+      <li class="active">
+        <a href="example.html" title="Example Usage"
+           accesskey="N">next</a>
+      </li>
+      <li class="active">
+        <a href="index.html" title="Welcome to scRutiNy’s documentation!"
+           accesskey="P">previous</a>
+      </li>
+    </ul>
+              
+	    </div>
+	  </div>
+	</div>
+        
+
+	<div class="row-fluid">
+      <div class="spc-rightsidebar span3">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">scRutiNy Manual</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li><a class="reference internal" href="#requirements-and-setting-up">Requirements and Setting Up</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#matriseq"><code class="docutils literal"><span class="pre">MatriSeq</span></code></a></li>
+<li><a class="reference internal" href="#regnetinference"><code class="docutils literal"><span class="pre">RegNetInference</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to scRutiNy’s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="example.html"
+                        title="next chapter">Example Usage</a></p>
+  <h3>This Page</h3>
+  <div>
+    <a href="_sources/README.rst.txt"
+       rel="nofollow">Show Source</a>
+  </div>
+<div class="this-page-menu">
+  <a href="/scipy/docs/scipy-docs/README.rst.rst">Edit page</a>
+</div>
+
+        </div>
+      </div>
+          <div class="span9">
+            
+        <div class="bodywrapper">
+          <div class="body" id="spc-section-body">
+            
+  <div class="section" id="scrutiny-manual">
+<h1>scRutiNy Manual<a class="headerlink" href="#scrutiny-manual" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Single-cell RNA-seq data allows us to address cell subpopulations within a tissue sample and gene expression heterogeneity. However, the ability of scRNA-seq to reveal the gene expression of individual cells also makes it more difficult to analyze than bulk RNA-seq data, as cell development, differentiation and replication can confound the results obtained from differential expression analyses. scRNA-seq is prone to more noise than bulk RNA-seq measurement, which are averaged over many cells. We present here a program <code class="docutils literal"><span class="pre">MatriSeq</span></code> for simulating single-cell RNA-seq data as a dynamical system based on a gene-gene interaction network that models the development of each cell over time. It has the ability to generate different cell types through simulation of differential gene regulation in the context of the underlying dynamical system.</p>
+<p>Generative models in general learn the joint probability distribution of the data and the model, while discriminative models learn conditional probability distributions. While discriminative models are better suited to classification tasks, generative models allow us to model the distributions of individual classes, allowing representations of the relations in the data. As single-cell data may have temporal non-stationarity and related soft boundaries between developing cells and differentiating cell types, generative models may be able to better extract biological function from this data.</p>
+<p>We attempt inference of gene regulatory networks from scRNA-seq data in the context of our generative model through the program <code class="docutils literal"><span class="pre">RegNetInference</span></code>. We study how well such networks can be reverse-engineered from the data, and quantify the increase in accuracy with increasing numbers of cells. We apply our method to real data and compare the performance of our model with published methodologies.</p>
+<p><code class="docutils literal"><span class="pre">scRutiNy</span></code> is comprised of two modules: <a class="reference internal" href="docs/source/RNAscrutiny.html#module-RNAscrutiny.MatriSeq" title="RNAscrutiny.MatriSeq"><code class="xref py py-class docutils literal"><span class="pre">RNAscrutiny.MatriSeq</span></code></a> and <a class="reference internal" href="docs/source/RNAscrutiny.html#module-RNAscrutiny.RegNetInference" title="RNAscrutiny.RegNetInference"><code class="xref py py-class docutils literal"><span class="pre">RNAscrutiny.RegNetInference</span></code></a>. <code class="docutils literal"><span class="pre">MatriSeq</span></code> and <code class="docutils literal"><span class="pre">RegNetInference</span></code> are standalone programs; however, the input from <code class="docutils literal"><span class="pre">MatriSeq</span></code> can be read into <code class="docutils literal"><span class="pre">RegNetInference</span></code>, or <code class="docutils literal"><span class="pre">RegNetInference</span></code> can read real data input and operate on its own.</p>
+<div class="section" id="requirements-and-setting-up">
+<h3>Requirements and Setting Up<a class="headerlink" href="#requirements-and-setting-up" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>Necessary Libraries for <code class="docutils literal"><span class="pre">MatriSeq</span></code> and <code class="docutils literal"><span class="pre">RegNetInference</span></code><ol class="arabic">
+<li><code class="docutils literal"><span class="pre">MatriSeq</span></code> libraries:<ul>
+<li><code class="docutils literal"><span class="pre">scipy</span></code></li>
+<li><code class="docutils literal"><span class="pre">scikit-learn</span></code></li>
+<li><code class="docutils literal"><span class="pre">rpy2</span></code></li>
+<li><code class="docutils literal"><span class="pre">numpy</span></code></li>
+<li><code class="docutils literal"><span class="pre">matplotlib</span></code></li>
+<li><code class="docutils literal"><span class="pre">tree</span></code> (custom library)</li>
+</ul>
+</li>
+<li><cite>RegNetInference</cite> libraries:<ul>
+<li><code class="docutils literal"><span class="pre">scipy</span></code></li>
+<li><code class="docutils literal"><span class="pre">scikit-learn</span></code></li>
+<li><code class="docutils literal"><span class="pre">rpy2</span></code></li>
+<li><code class="docutils literal"><span class="pre">numpy</span></code></li>
+<li><code class="docutils literal"><span class="pre">matplotlib</span></code></li>
+<li><code class="docutils literal"><span class="pre">seaborn</span></code></li>
+<li><code class="docutils literal"><span class="pre">networkx</span></code></li>
+</ul>
+</li>
+</ol>
+</li>
+<li>Setting up the working directories<ol class="arabic">
+<li>Data and graphs produced by <code class="docutils literal"><span class="pre">MatriSeq</span></code> by default are output to the directory <code class="docutils literal"><span class="pre">scRutiNy/MatriSeq</span></code> but the directory can be specified differently by the user with the <code class="docutils literal"><span class="pre">outputDir</span></code> parameter passed to <code class="docutils literal"><span class="pre">MatriSeq.init</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">RegNetInference</span></code> reads the data output from <code class="docutils literal"><span class="pre">MatriSeq</span></code>; it expects the data to be in the directory <code class="docutils literal"><span class="pre">scRutiNy/MatriSeq</span></code> but this can be specified differently by the user the <code class="docutils literal"><span class="pre">inputDir</span></code> parameter passed to <code class="docutils literal"><span class="pre">RegNetInference.init</span></code>. Data and graphs produced by <code class="docutils literal"><span class="pre">RegNetInference</span></code> by default are output to the directory <code class="docutils literal"><span class="pre">scRutiNy/RegNetInference</span></code> but the directory can be specified differently by the user with the <code class="docutils literal"><span class="pre">outputDir</span></code> parameter passed to <code class="docutils literal"><span class="pre">RegNetInference.init</span></code>.</li>
+</ol>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="matriseq">
+<h2><code class="docutils literal"><span class="pre">MatriSeq</span></code><a class="headerlink" href="#matriseq" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Selecting the parameters for the gene coupling matrix</p>
+<ul>
+<li><p class="first">Selecting the gene coupling matrix size: Select the number of genes (<code class="docutils literal"><span class="pre">n</span></code>) to be simulated. The gene coupling matrix <span class="math">\(W\)</span> will describe how the gene expression of a cell at a time point affects the gene expression of the same cell at the next time point. The resulting <span class="math">\(W\)</span> matrix generated will be an <span class="math">\(n\times n\)</span> matrix. Default recommended value of <code class="docutils literal"><span class="pre">n</span></code> is 3,000.</p>
+</li>
+<li><p class="first">Selecting the network structure: There are three options for <code class="docutils literal"><span class="pre">networkStructure</span></code> for the gene coupling matrix that can be selected:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SimulatedPowerLaw</span></code> - Simulated power law network with <code class="docutils literal"><span class="pre">powerLawExponent</span></code> as parameter</li>
+<li><code class="docutils literal"><span class="pre">TRRUST</span></code> - Real network from TRRUST database of transcription factor interactions</li>
+<li><code class="docutils literal"><span class="pre">Random</span></code> - Random network with <code class="docutils literal"><span class="pre">networkSparsity</span></code> as a parameter</li>
+</ul>
+<p>The “Simulated Power Law” network structure is a network which follows a power law distribution in terms of the indegree and outdregree of the nodes. The <code class="docutils literal"><span class="pre">powerLawExponent</span></code> parameter controls what the exponent used for the power law distribution is – in order for the distribution to be a power law, this exponent is usually between 2 and 3.</p>
+<p>The “TRRUST” network structure is a network based on literature-curated transcription factor interactions in the human regulatory network. The network is sourced from <a class="reference external" href="http://www.grnpedia.org/trrust/">http://www.grnpedia.org/trrust/</a> and can be generated from the raw file on the website using a script included in the program. This regulatory network is good for simulating the realistic structure of a human regulatory network. It also follows a power law distribution and can be approximated with the right exponent used in the “Simulated Power Law” distribution. <em>Note:</em> The number of genes (<code class="docutils literal"><span class="pre">n</span></code>) will be set by <code class="docutils literal"><span class="pre">MatriSeq</span></code> if the TRRUST network is used, so the user input will be overridden.</p>
+<p>The “Random” network structure is a network in which connections are randomly assigned. The <code class="docutils literal"><span class="pre">networkSparsity</span></code> parameter controls what fraction of possible connections are actually set as connections. This regulatory network is good for studying how the network sparsity affects the outcomes of the simulation.</p>
+<p>Default recommended value of <code class="docutils literal"><span class="pre">networkStructure</span></code> is <code class="docutils literal"><span class="pre">TRRUST</span></code>.</p>
+</li>
+</ul>
+</li>
+<li><p class="first">Controlling the magnitude of the gene coupling matrix</p>
+<ul class="simple">
+<li>Selecting the minimum <span class="math">\(alpha\)</span>: The parameter <code class="docutils literal"><span class="pre">alpha</span></code> controls the size of the couplings of the gene coupling matrix <span class="math">\(W\)</span>. Originally, the values of the entries of <span class="math">\(W\)</span> range from <span class="math">\((-1, 1)\)</span>, where a -1 represents a strong inhibitory regulatory relationship, while a 1 represents a strong activation relationship. However, these couplings can be scaled, because the original <span class="math">\(W\)</span> matrix is not guaranteed to cause the convergence of cells. The <code class="docutils literal"><span class="pre">alpha</span></code> parameter is a scaling parameter such that <span class="math">\(W\)</span> is multiplied by <span class="math">\(1/\alpha\)</span> in order to get the new value of <code class="docutils literal"><span class="pre">W</span></code>. The <code class="docutils literal"><span class="pre">initialAlpha</span></code> parameter can be set by the user, and <code class="docutils literal"><span class="pre">MatriSeq</span></code> will test to see if the <code class="docutils literal"><span class="pre">initialAlpha</span></code> provided will create a <code class="docutils literal"><span class="pre">W</span></code> that causes convergence of cell types. If not, <code class="docutils literal"><span class="pre">MatriSeq</span></code> will increase <code class="docutils literal"><span class="pre">alpha</span></code> until it reaches a value that scales <code class="docutils literal"><span class="pre">W</span></code> to a value range that causes convergence of cell types. More on this process is described in “Matri-seq Step 5 - Selecting the parameters to control the smoothness of gene trajectories and the selection of alpha”.</li>
+<li>Selecting the <code class="docutils literal"><span class="pre">alpha</span></code> to be lower will cause the gene trajectories to be less uniform and to take on more nonlinear trajectories. Default recommended value of <code class="docutils literal"><span class="pre">initialAlpha</span></code> is 1.</li>
+<li>Selecting the maximum value for the <span class="math">\(\beta\)</span> distribution parameters: For each row <span class="math">\(i\)</span> of <span class="math">\(W\)</span>, which represents the incoming regulatory relationships that the gene <span class="math">\(i\)</span> has from other genes, a <span class="math">\(\beta\)</span> distribution is generated from an <span class="math">\(\alpha\)</span> and a <span class="math">\(\beta\)</span> parameter. The couplings for that gene are selected from the <span class="math">\(\beta\)</span> distribution for the gene. The <span class="math">\(alpha\)</span> and the <span class="math">\(beta\)</span> parameter for each gene are randomly selected from a uniform distribution (1, <code class="docutils literal"><span class="pre">maxAlphaBeta</span></code>), so <code class="docutils literal"><span class="pre">maxAlphaBeta</span></code> can be selected to control the range of <span class="math">\(\alpha\)</span> and <span class="math">\(\beta\)</span> parameters to be used in the generation of gene coupling values. Default recommended value of <code class="docutils literal"><span class="pre">maxAlphaBeta</span></code> is 10</li>
+<li>Selecting whether to normalize rows of W by the number of connections: The rows of <code class="docutils literal"><span class="pre">W</span></code> can be normalized by the number of connections each row has – the couplings for row <span class="math">\(i\)</span> will all be divided by the number of connections that row <span class="math">\(i\)</span> has. This can be done to reduce the high variance that genes with a lot of regulators may demonstrate. Default recommended value of <code class="docutils literal"><span class="pre">normalizeWRows</span></code> is <code class="docutils literal"><span class="pre">False</span></code>.</li>
+</ul>
+</li>
+<li><p class="first">Selecting the cell development structure</p>
+<ul class="simple">
+<li>Selecting whether to use the same progenitor cell for all cells: Each cell in <cite>MatriSeq</cite> is “developed” over pseudotime in order to produce the single-cell development effects in the data. As a result, each cell must start with some initial state. There are two options: all cells can start with the same initial state, or all cells can start with different initial states, and the boolean <code class="docutils literal"><span class="pre">sameInitialCell</span></code> controls this. If all cells start with the same initial state, this can be used to model a dataset where a stem cell divides and differentiates over time into many different cell types. If all cells start with different initial states, then this can be model a situation where all the cells have already differentiated or are differentiating along different, unrelated tracks. Default Recommended value of <code class="docutils literal"><span class="pre">sameInitialCell</span></code> is <code class="docutils literal"><span class="pre">True</span></code>.</li>
+<li>Selecting whether to capture cells during development or once development has finished: Cells during the development process undergo many changes, and some even progress through many progenitor cell types before they stop developing and stay as a certain cell type. Some single-cell experiments capture cells once they have all stopped developing and have reached a steady state. However, other single-cell experiments capture single cells at different times in the cells’ development trajectories, so some cells have just begun developing, while others are almost finished. Programs like “Monocle” attempt to order these developing cells along their trajectories and assign them “pseudotimes” based on the estimated developmental time of capture. <code class="docutils literal"><span class="pre">MatriSeq</span></code> has the ability to simulate this aspect by stopping the cells after a certain number of iterations prior to the optimal number of developmental iterations.
+If the boolean <code class="docutils literal"><span class="pre">developmentalMode</span></code> is set to <code class="docutils literal"><span class="pre">True</span></code>, then when a cell is developing into its final cell type, the number of iterations that it will develop for will be drawn from a uniform distribution (0, <code class="docutils literal"><span class="pre">optimalIterations</span></code>). This allows for pseudotime inference algorithms to draw pseudotime values from the generated data, and <code class="docutils literal"><span class="pre">MatriSeq</span></code> will also provide a normalized pseudotime value for each cell based on the number of iterations so that this value can be compared against those inferred by pseudotime inference programs.
+However, if the boolean <code class="docutils literal"><span class="pre">developmentalMode</span></code> is set to <code class="docutils literal"><span class="pre">False</span></code>, then when a cell is developing into its final cell type, the number of iterations that it will develop for will be drawn from a poisson distribution with the mean equal to <code class="docutils literal"><span class="pre">optimalIterations</span></code>. This allows there to be some variation in the number of iterations each cell develops for, but not as much variation as when <code class="docutils literal"><span class="pre">developmentalMode</span></code> is set to <code class="docutils literal"><span class="pre">True</span></code>. Default recommended value of <code class="docutils literal"><span class="pre">developmentalMode</span></code> is <code class="docutils literal"><span class="pre">False</span></code>.</li>
+<li>Creating the cell type hierarchy: The cell type hierarchy is at the core of <code class="docutils literal"><span class="pre">MatriSeq</span></code>. Cell types can have progenitors and descendants, and different cell types can have different attributes. Below we describe the different aspects of this cell type hierarchy:<ol class="arabic">
+<li>Selecting the number of cells per cell type: <code class="docutils literal"><span class="pre">MatriSeq</span></code> can support having different cell types in one simulation. The list <code class="docutils literal"><span class="pre">cellTypeNumCells</span></code> represents how many cells each cell type will end up with. For example, if the value of the entry with index 0 is 400 in <code class="docutils literal"><span class="pre">cellTypeNumCells</span></code>, then that means that cell type 0 will end up with 400 cells, while if the value of the entry with index 2 is 200, then that means that cell type 2 will end up with 200 cells. Default Recommended value of <code class="docutils literal"><span class="pre">cellTypeNumCells</span></code> is <code class="docutils literal"><span class="pre">[500]</span></code>.</li>
+<li>Selecting parent-child relationship between cell types: All cell types in <code class="docutils literal"><span class="pre">MatriSeq</span></code> must have a parent, even if that parent is the empty cell type represented by the index -1. The list <code class="docutils literal"><span class="pre">cellTypeParents</span></code> describes what the parent of each cell type is. Cell types are ordered and correspond to their index in the list – for example, cell type 0 corresponds to the 0 index in the list, and cell type 1 corresponds to the 1 index in the list. If the value in <code class="docutils literal"><span class="pre">cellTypeParents</span></code> for index 1 is 0, then that means that cell type 0 is the parent of cell type 1. However, if the value for index 0 is -1, that means that the cell type 0 has no parent, so its parent is the empty cell type. Multiple cell types can have the empty cell type as their parent, which allows for independent cell type lineages.
+All cells will develop through their parent cell types first, starting with the parent with the empty cell type as its parent. However, the specified number of cells will end up as each cell type. Default recommended value of <code class="docutils literal"><span class="pre">cellTypeParents</span></code> is <code class="docutils literal"><span class="pre">[-1]</span></code>.</li>
+<li>Selecting the parameters for the amount of constant genes per cell type: Each cell type in <code class="docutils literal"><span class="pre">MatriSeq</span></code> has a projection vector and a constant vector that cause differential gene expression between cell types. The projection vector sets certain genes to 0, and then the constant vector sets those genes to take on a value of 1 or -1, both of which have an equal probability of being selected. These genes are meant to represent input transcription factors, which are either being highly expressed (value 1) or lowly expressed (value -1) due to cell-type specific transcription factor expression. As genes affect each other in development, these expression values of input genes affect other genes, and this leads to cell type differentiation. Genes that are defined as transcription factors can only be genes that have a non-zero outdegree, so a list of genes with nonzero outdegrees is generated to be used.
+For each cell type, a proportion of the genes with nonzero outdegrees will be selected to be set as cell-type specific transcription factors, and this proportion can be selected for each cell type. The array cellTypeConstProps describes this proportion of genes for each cell type. Additionally, each cell type inherits the projection and constant vectors from its parent cell type, as children cell types generally share cell-type specific transcription factor expression with their parent cell type, and the resultant projection and constant vectors for a cell type is the union of the selected genes of the parent and cell-type specific projection and constant vectors. Default recommended value of <code class="docutils literal"><span class="pre">cellTypeConstProps</span></code> is <code class="docutils literal"><span class="pre">[0.05]</span></code>.</li>
+<li>Selecting the cell type means: Different cell types can have different average levels of gene expression, as some cell types may have very active gene expression, while other cell types may have very inactive gene expression. <code class="docutils literal"><span class="pre">MatriSeq</span></code> will allow this feature of cell types to be replicated through selection of a gene expression mean per cell type; however, this feature is not available in the current version of Matri-seq. Unlike the projection/constant vectors, cell means are not inherited. Default recommended value of <code class="docutils literal"><span class="pre">cellTypeMeans</span></code> is <code class="docutils literal"><span class="pre">None</span></code>.</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p class="first">Selecting the parameters to control the smoothness of gene trajectories and the selection of alpha and the optimal number of iterations
+Controlling gene trajectory smoothness:</p>
+<ul>
+<li><p class="first">Selecting how much to update each cell during each development step: In each iteration of development, each cell’s state is updated as by the following equations:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">nextState</span> <span class="pre">=</span> <span class="pre">tanh(W*(initialState</span> <span class="pre">-</span> <span class="pre">geneMeanLevels)</span> <span class="pre">+</span> <span class="pre">normal(0,</span> <span class="pre">noiseDisp,</span> <span class="pre">n)</span></code></li>
+<li><code class="docutils literal"><span class="pre">derivative</span> <span class="pre">=</span> <span class="pre">(nextState</span> <span class="pre">-</span> <span class="pre">initialState)</span> <span class="pre">/</span> <span class="pre">tau</span></code></li>
+<li><code class="docutils literal"><span class="pre">currentState</span> <span class="pre">=</span> <span class="pre">initialState</span> <span class="pre">+</span> <span class="pre">timeStep*derivative</span></code></li>
+<li><code class="docutils literal"><span class="pre">currentState</span> <span class="pre">=</span> <span class="pre">proj*currentState</span> <span class="pre">+</span> <span class="pre">const</span> <span class="pre">+</span> <span class="pre">geneMeanLevels</span></code></li>
+</ul>
+<p>Basically, the “next” state is defined to be the state of the cell after the next application of the <span class="math">\(W\)</span> matrix to the cell state. This “next” state reflects a time step of unit 1 later. However, the gene trajectory can be made smoother by using this “next” step to calculate a derivative in the gene levels at the cell’s current time point, and then to approximate the cell’s state at a much closer time point. This is an application of the Euler method for approximating the value of a function at a nearby time point. The variable <code class="docutils literal"><span class="pre">timeStep</span></code> controls how far apart in time the cell’s current state and its approximated next state are. The final update step applies the cell-type specific projection and constant vectors to the cell. If the timeStep variable is reduced, then the gene trajectory will be smoother, and if it is increased then the gene trajectory will more rough, and if it is set to 1 then the update will be equivalent to simply applying the <span class="math">\(W\)</span> matrix to the cell state at each iteration. <em>Note</em>: <code class="docutils literal"><span class="pre">geneMeanLevels</span></code> is subtracted out of the original computation and added back in at the end so that the application of the <span class="math">\(W\)</span> matrix can reflect changes in each gene from its baseline level. However, in the current version of the program <code class="docutils literal"><span class="pre">geneMeanLevels</span></code> is set to an array of 0’s, since <code class="docutils literal"><span class="pre">geneMeans</span></code> are not able to be specified by the user yet in the current version. Default recommended value of timeStep is 0.01.</p>
+</li>
+<li><p class="first">Selecting the amount of noise to add to each cell at each development step: In the above cell state update equations, the cell’s “next” state is calculated by applying the <span class="math">\(W\)</span> matrix and also adding in a Gaussian random variable. This Gaussian random variable is a noise variable that represents how at each iteration, a cell’s state fluctuates due to forces outside of gene regulation. The amount of fluctuation is determined by the variable <code class="docutils literal"><span class="pre">noiseDisp</span></code>, which controls the standard deviation of the Gaussian random variable, which is centered at 0. The <code class="docutils literal"><span class="pre">timeStep</span></code> and <code class="docutils literal"><span class="pre">noiseDisp</span></code> are independent because the <code class="docutils literal"><span class="pre">noiseDisp</span></code> is applied to the “next” state, which is always a time step of 1 unit away. As a result, the <code class="docutils literal"><span class="pre">noiseDisp</span></code> should be set relative to the S value bounds of <span class="math">\((-1, 1)\)</span>, as any noise fluctuations will be bounded such that a cell’s state can not be greater than 1 or less than -1. Default recommended value of <code class="docutils literal"><span class="pre">noiseDisp</span></code> is 0.05.</p>
+<p>Controlling the selection of <code class="docutils literal"><span class="pre">alpha</span></code> and the optimal number of iterations: In <code class="docutils literal"><span class="pre">MatriSeq</span></code>, a value of <code class="docutils literal"><span class="pre">alpha</span></code> is selected by starting with <code class="docutils literal"><span class="pre">initialAlpha</span></code> and testing to see if the <span class="math">\(W\)</span> matrix scaled by it allows for the ‘” number of iterations is determined, as different cell types have different projection and constant vectors, so some make take longer than others to converge. The process for determining the optimal number of iterations is the same as that for determining the optimal <code class="docutils literal"><span class="pre">alpha</span></code>, except for this step the <code class="docutils literal"><span class="pre">alpha</span></code> is already fixed, but the same step that is run for each iteration of <code class="docutils literal"><span class="pre">alpha</span></code> is run.</p>
+<ol class="arabic">
+<li><p class="first">Selecting when to consider a cell as having converged: At each testing of the <code class="docutils literal"><span class="pre">W</span></code> produced by <code class="docutils literal"><span class="pre">alpha</span></code>, a subset of cells are selected and developed over a certain number of iterations. “Convergence” is defined by when the average derivative of the change in a cell’s state over a specified number of iterations is below a certain threshold <code class="docutils literal"><span class="pre">convergenceThreshold</span></code>. As illustrated by the equations below:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">derivative</span> <span class="pre">=</span> <span class="pre">(currentState</span> <span class="pre">–</span> <span class="pre">initialState)/timeStep</span></code></li>
+<li><code class="docutils literal"><span class="pre">if</span> <span class="pre">mean(derivative)</span> <span class="pre">&lt;</span> <span class="pre">convergenceThreshold</span></code>, then convergence</li>
+</ul>
+<p>The convergence threshold can control how far apart the cell states of cells of the same cell type are from each other, as a higher <code class="docutils literal"><span class="pre">convergenceThreshold</span></code> will allow for cells to be more variable right before they have “converged”, while a lower <code class="docutils literal"><span class="pre">convergenceThreshold</span></code> will allow for cells to be less variable right before they have “converged”. Also, a lower <code class="docutils literal"><span class="pre">convergenceThreshold</span></code> should allow to a cell to converge in fewer iterations, so the program should run faster. Default recommended value for <code class="docutils literal"><span class="pre">convergenceThreshold</span></code> is 0.10.</p>
+</li>
+<li><p class="first">Selecting how large to make each <code class="docutils literal"><span class="pre">alpha</span></code> step: When an <code class="docutils literal"><span class="pre">alpha</span></code> value fails to produce a <code class="docutils literal"><span class="pre">W</span></code> matrix that causes convergence within a specified number of iterations, then the <code class="docutils literal"><span class="pre">alpha</span></code> value is increased by <code class="docutils literal"><span class="pre">alphaStep</span></code>, and the new value of alpha is tested. Decreasing <code class="docutils literal"><span class="pre">alphaStep</span></code> will allow for a more accurate <code class="docutils literal"><span class="pre">alpha</span></code> to be found, but <code class="docutils literal"><span class="pre">MatriSeq</span></code> will take longer to run. <em>Note:</em> Do not decrease <code class="docutils literal"><span class="pre">alphaStep</span></code> below 0.01, as the program is set to dynamically adjust the <code class="docutils literal"><span class="pre">alphaStep</span></code> to 0.01 once the <code class="docutils literal"><span class="pre">alpha</span></code> is near the optimal <code class="docutils literal"><span class="pre">alpha</span></code>. Default recommended value of <code class="docutils literal"><span class="pre">alphaStep</span></code> is 0.02.</p>
+</li>
+<li><p class="first">Selecting the maximum number of iterations until convergence: Potentially, any value of <code class="docutils literal"><span class="pre">alpha</span></code> could cause convergence if the program was given a long enough time to run. However, as time is limited, an upper bound on the number of iterations can be set through <code class="docutils literal"><span class="pre">maxNumIterations</span></code>. Thus, if the cell does not converge with the current <code class="docutils literal"><span class="pre">alpha</span></code> after <code class="docutils literal"><span class="pre">maxNumIterations</span></code> iterations, then the <code class="docutils literal"><span class="pre">alpha</span></code> is incremented by <code class="docutils literal"><span class="pre">alphaStep</span></code>. If the user wants time series data, then <code class="docutils literal"><span class="pre">maxNumIterations</span></code> can be increased to give more time points, since the cells should undergo more iterations before development since the <code class="docutils literal"><span class="pre">maxNumIterations</span></code> has been increased, so a smaller <code class="docutils literal"><span class="pre">alpha</span></code> can be found that produces a <code class="docutils literal"><span class="pre">W</span></code> that causes cell convergence. Default recommended value of <code class="docutils literal"><span class="pre">maxNumIterations</span></code> is 500.</p>
+</li>
+<li><p class="first">Selecting how many cells to sample: In order to determine convergence, <code class="docutils literal"><span class="pre">cellsToSample</span></code> cells are randomly selected from the pool of all cells, and convergence tests are performed on them. In order for “convergence” to have occurred, all cells in the sample will need to have “converged”. As a result, increasing <code class="docutils literal"><span class="pre">cellsToSample</span></code> will lead to a more accurate alpha and optimal number of iterations being found, but it will also cause Matri-seq to take longer. Default recommended value of <code class="docutils literal"><span class="pre">cellsToSample</span></code> is 50.</p>
+</li>
+<li><p class="first">Selecting how many iterations to average over to determine convergence: When a cell has converged, the mean of its derivative over <code class="docutils literal"><span class="pre">convDistAvgNum</span></code> occurred iterations must be below <code class="docutils literal"><span class="pre">convergenceThreshold</span></code>. Not only must the current derivative be below <code class="docutils literal"><span class="pre">convergenceThreshold</span></code>, but also the previous <code class="docutils literal"><span class="pre">convDistAvgNum</span></code> iterations. This is done so that the derivative does not fluctuate to a low value and trigger “convergence”, but rather the cell must be consistently stable to have converged. Default recommended value of <code class="docutils literal"><span class="pre">convDistAvgNum</span></code> is 20.</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p class="first">Selecting the parameters to create realistic characteristics of scRNA-seq data: The data outputted by the first four steps is in the range <span class="math">\((-1, 1)\)</span>, and the distribution of average gene expression per gene and the distribution of average gene expression per cell are both centered around 0. As scRNA-seq data does not exhibit these characteristics, since it cannot be negative and average gene expression is not 0, <code class="docutils literal"><span class="pre">MatriSeq</span></code> must apply some transformations to make the data more realistic. Many of the transformations are adapted from <code class="docutils literal"><span class="pre">Splatter</span></code>.</p>
+<ul class="simple">
+<li>Selecting the base of the exponent used to transform the data: The original <code class="docutils literal"><span class="pre">S</span></code> matrix created by the first three steps contains values in the range <span class="math">\((-1, 1)\)</span>, where -1 represents a gene with very low expression, and a 1 represents a gene with very high expression. However, real gene expression is of the range <span class="math">\((0, \inf)\)</span>. This aspect can be simulated by exponentiating the data, meaning that each value in the matrix is replaced by an exponent base to the power of the previous value. This exponent base can be selected as a power of e – the parameter <code class="docutils literal"><span class="pre">expScale</span></code> controls the exponent base so that the base is <span class="math">\(\exp\)</span> (<code class="docutils literal"><span class="pre">expscale</span></code>). Now, the new range of values that  the data can take is (<span class="math">\(\exp\)</span> (-<code class="docutils literal"><span class="pre">expScale</span></code>), <span class="math">\(e\)</span> (<code class="docutils literal"><span class="pre">expScale</span></code>)). The exponent scale controls the variance of gene expression, but it does not control the mean of gene expression, since the gene means are overridden by the gene mean distribution selected in the next step. Default recommended value of <code class="docutils literal"><span class="pre">expScale</span></code> is 4.</li>
+<li>Selecting the distribution of gene means:<ol class="arabic">
+<li>Selecting whether to use a Gamma or Exponentially-Modified Gaussian distributed gene mean: The average expression per gene can be modeled using a Gamma distribution, as is the practice in Splatter. Currently, only a Gamma distributed mean can be used, as the exponentially-modified Gaussian distribution will be available in future versions, so <code class="docutils literal"><span class="pre">gammaDistMean</span></code> must be set to <code class="docutils literal"><span class="pre">True</span></code>. Both distributions give the distribution of the logarithm of the gene means a left skew. The gene means are scaled to match that of the selected distribution. Default recommended value of <code class="docutils literal"><span class="pre">gammaDistMean</span></code> is <code class="docutils literal"><span class="pre">True</span></code>.</li>
+<li>Selecting the Gamma distributed gene mean shape and rate: The Gamma distribution is governed by the shape and rate parameters. Both of these parameters can be selected to make the distribution of gene means match that of a real dataset. The shape parameter controls the skewness of the distribution, while the rate can be used to adjust the mean. Default recommended value of <code class="docutils literal"><span class="pre">shape</span></code> is 0.35 and <code class="docutils literal"><span class="pre">rate</span></code> is 0.20.</li>
+<li>Selecting the Exponentially-Modified Gaussian distributed gene mean lambda and gene scale: This option is not currently available in the current version.</li>
+</ol>
+</li>
+<li>Selecting the dispersion of the cell radius: After the output of the previous two steps, the distribution of the average gene expression per cell is narrow, because on average each cell should have a similar mean gene expression. However, real scRNA-seq data has a wide distribution of average gene expression per cell, and this is because cells have different sizes. The expression values represented mRNA concentrations, which means that they are independent of the cell size. However, in this step the concentrations are scaled based on the cell size. It is assumed that the distribution of cell radius is normally distributed, with a mean of 1 and a standard deviation of <code class="docutils literal"><span class="pre">cellRadiusDisp</span></code>, and each cell is assigned a radius.The mean of the cell radius distribution is 1 so that the mean gene expression should not be significantly affected across all genes. Each cell’s volume is then calculated by cubing the cell radius, and then the mRNA count is found by multiplying the mRNA concentration by the cell volume. Increasing the <code class="docutils literal"><span class="pre">cellRadiusDisp</span></code> naturally increases the width of the distribution of the average gene expression per cell. Default recommended value of <code class="docutils literal"><span class="pre">cellRadiusDisp</span></code> is 0.15.</li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="section" id="regnetinference">
+<h2><code class="docutils literal"><span class="pre">RegNetInference</span></code><a class="headerlink" href="#regnetinference" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Selecting the maximum pseudotime distance between cell pairs<ul>
+<li>Select the maximum pseudotime distance: <code class="docutils literal"><span class="pre">RegNetInference</span></code> finds the gene correlation matrix by analyzing the differences in gene expression between one cell at one time point and another cell at another time point. The program then tries to find the best <span class="math">\(W\)</span> (gene correlation) matrix that explains the changes in gene expression over time. In <code class="docutils literal"><span class="pre">RegNetInference</span></code>, the input pseudotimes must be scaled so that the minimum pseudotime is 0 and the maximum pseudotime is 1.
+If <code class="docutils literal"><span class="pre">RegNetInference</span></code> were to compute the <span class="math">\(W\)</span> matrix that fits best for all possible pairs of cells, the number of cell pairs would be too large, and the error between a cell pair with a pseudotime near 0 and another cell pair with a pseudotime near 1 would be so large that it would be difficult to make the <span class="math">\(W\)</span> matrix able to successfully model such a large change in pseudotime. As a result, the <code class="docutils literal"><span class="pre">pseudotimeThresh</span></code> parameter can be set to determine the maximum pseudotime difference between two cells in order for that pair to be considered in the calculation of <span class="math">\(W\)</span>. Default recommended value of <code class="docutils literal"><span class="pre">pseudotimeThresh</span></code> is 0.10.</li>
+</ul>
+</li>
+<li>Select the sliding window size used for averaging over cells<ul>
+<li>Select the sliding window size: The cells are ordered by pseudotime in <code class="docutils literal"><span class="pre">RegNetInference</span></code> so that for each gene, a trajectory over pseudotime can be found and plotted. However, this trajectory is often very rough, as there is a lot of error in scRNA-seq experiments, and the Poisson sampling of reads makes values discrete. As a result, <code class="docutils literal"><span class="pre">RegNetInference</span></code> provides a smoothing function that sets each cell’s expression profile to the average of the previous and following cells. The parameter <code class="docutils literal"><span class="pre">windowSize</span></code> controls how many cells are averaged over to produce a cell’s state value – for each cell roughly <code class="docutils literal"><span class="pre">windowSize</span></code>/2 cells before it and <code class="docutils literal"><span class="pre">windowSize</span></code>/2 cells after it (in pseudotime) are averaged into the cell’s state. Default recommended value of <code class="docutils literal"><span class="pre">windowSize</span></code> is 30.</li>
+</ul>
+</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container container-navbar-bottom">
+      <div class="spc-navbar">
+        
+      </div>
+    </div>
+    <div class="container">
+    <div class="footer">
+    <div class="row-fluid">
+    <ul class="inline pull-left">
+      <li>
+        &copy; Copyright 2017, Steffen K Cornwell, Joseph P McKenna, Vipul Periwal.
+      </li>
+      <li>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5.
+      </li>
+    </ul>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

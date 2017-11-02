@@ -1,12 +1,12 @@
 Metadata-Version: 1.0
 Name: RNAscrutiny
-Version: 0.8
-Summary: Generative models from scRNA-seq data.
-Home-page: http://lbm.niddk.nih.gov/mckennajp/RNAscrutiny
+Version: 1.1
+Summary: Tool for simulating and analyzing scRNA-seq data.
+Home-page: http://lbm.niddk.nih.gov/mckennajp/scRutiNy
 Author: Steffen K Cromwell, Joseph P McKena, Vipul Periwal
 Author-email: joepatmckenna@gmail.com
 License: MIT
 Description-Content-Type: UNKNOWN
 Description: UNKNOWN
-Keywords: generative single cell RNA sequencing transcriptomics genomics
+Keywords: RNA single cell simulation inference generative genomics transcriptomics
 Platform: UNKNOWN

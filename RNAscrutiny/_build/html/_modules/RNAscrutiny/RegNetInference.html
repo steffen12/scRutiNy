@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>RNAscrutiny.RegNetInference &mdash; scRutiNy 1.0 documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="../../_static/css/spc-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../../_static/css/spc-extend.css">
+    <link rel="stylesheet" href="../../_static/scipy.css" type="text/css" >
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" >
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" >
+    <link rel="search" title="Search" href="../../search.html" >
+    <link rel="top" title="scRutiNy 1.0 documentation" href="../../index.html" >
+    <link rel="up" title="Module code" href="../index.html" > 
+  </head>
+  <body>
+
+  <div class="container">
+    <div class="header">
+    </div>
+  </div>
+
+
+    <div class="container">
+      <div class="main">
+        
+	<div class="row-fluid">
+	  <div class="span12">
+	    <div class="spc-navbar">
+              
+    <ul class="nav nav-pills pull-left">
+        <li class="active"><a href="https://lbm.niddk.nih.gov">LBM</a></li>
+        <li class="active"><a href="https://pypi.python.org/pypi/RNAscrutiny">scRutiNy</a></li>
+	
+        <li class="active"><a href="../../index.html">scRutiNy 1.0 documentation</a></li>
+	
+          <li class="active"><a href="../index.html" accesskey="U">Module code</a></li> 
+    </ul>
+              
+              
+    <ul class="nav nav-pills pull-right">
+      <li class="active">
+        <a href="../../genindex.html" title="General Index"
+           accesskey="I">index</a>
+      </li>
+      <li class="active">
+        <a href="../../py-modindex.html" title="Python Module Index"
+           >modules</a>
+      </li>
+    </ul>
+              
+	    </div>
+	  </div>
+	</div>
+        
+
+	<div class="row-fluid">
+      <div class="spc-rightsidebar span3">
+        <div class="sphinxsidebarwrapper">
+
+        </div>
+      </div>
+          <div class="span9">
+            
+        <div class="bodywrapper">
+          <div class="body" id="spc-section-body">
+            
+  <h1>Source code for RNAscrutiny.RegNetInference</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">rankdata</span>
+<span class="kn">from</span> <span class="nn">sklearn.manifold</span> <span class="k">import</span> <span class="n">TSNE</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="k">import</span> <span class="n">DBSCAN</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">Lasso</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">mpatches</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="k">import</span> <span class="n">metrics</span>
+
+<span class="c1"># from scipy.stats import spearmanr</span>
+<span class="c1">#from sklearn.cluster import AgglomerativeClustering</span>
+<span class="c1">#from sklearn.cluster import SpectralClustering</span>
+<span class="c1">#from sklearn.linear_model import LinearRegression</span>
+
+<span class="n">__inputDir</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">__outputDir</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">__verbose</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="init"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.init">[docs]</a><span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">inputDir</span><span class="o">=</span><span class="s1">&#39;./scRutiNy/MatriSeq&#39;</span><span class="p">,</span>
+         <span class="n">outputDir</span><span class="o">=</span><span class="s1">&#39;./scRutiNy/RegNetInference&#39;</span><span class="p">,</span>
+         <span class="n">seed</span><span class="o">=</span><span class="mi">1337</span><span class="p">,</span>
+         <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+    <span class="k">global</span> <span class="n">__inputDir</span><span class="p">,</span> <span class="n">__outputDir</span><span class="p">,</span> <span class="n">__verbose</span>
+
+    <span class="c1"># set directories</span>
+    <span class="n">__inputDir</span> <span class="o">=</span> <span class="n">inputDir</span>
+    <span class="n">__outputDir</span> <span class="o">=</span> <span class="n">outputDir</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outputDir</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># seed random number generators</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="c1"># set verbosity</span>
+    <span class="n">__verbose</span> <span class="o">=</span> <span class="n">verbose</span></div>
+
+
+<div class="viewcode-block" id="readCellStates"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.readCellStates">[docs]</a><span class="k">def</span> <span class="nf">readCellStates</span><span class="p">():</span>
+
+    <span class="n">cellStates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__inputDir</span><span class="p">,</span> <span class="s2">&quot;synthscRNAseq.npy&quot;</span><span class="p">))</span>
+    <span class="n">pseudotimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__inputDir</span><span class="p">,</span> <span class="s2">&quot;synthPseudotimes.npy&quot;</span><span class="p">))</span>
+    <span class="n">cellTypesRecord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__inputDir</span><span class="p">,</span> <span class="s2">&quot;cellTypesRecord.npy&quot;</span><span class="p">))</span>
+    <span class="n">W_real</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__inputDir</span><span class="p">,</span> <span class="s2">&quot;gc.npy&quot;</span><span class="p">))</span>
+
+    <span class="n">n</span><span class="p">,</span> <span class="n">cells</span> <span class="o">=</span> <span class="n">cellStates</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">cellStates</span> <span class="o">=</span> <span class="n">convertToS</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Num genes: &quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s2">&quot;, num cells: &quot;</span><span class="p">,</span> <span class="n">cells</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cell States: &quot;</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Num TF Connections: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">W_real</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pseudotimes: &quot;</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">,</span> <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">W_real</span></div>
+
+
+<div class="viewcode-block" id="convertToS"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.convertToS">[docs]</a><span class="k">def</span> <span class="nf">convertToS</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">cellNum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cells</span><span class="p">):</span>
+        <span class="n">cellRankings</span> <span class="o">=</span> <span class="n">rankdata</span><span class="p">(</span><span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cellNum</span><span class="p">])</span>
+        <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cellNum</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">cellRankings</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">geneNum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">geneRankings</span> <span class="o">=</span> <span class="n">rankdata</span><span class="p">(</span><span class="n">cellStates</span><span class="p">[</span><span class="n">geneNum</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">cellStates</span><span class="p">[</span><span class="n">geneNum</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">geneRankings</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">cells</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cellStates</span></div>
+
+
+<div class="viewcode-block" id="smoothCellData"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.smoothCellData">[docs]</a><span class="k">def</span> <span class="nf">smoothCellData</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">,</span> <span class="n">windowSize</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+    <span class="c1">#Please choose only an odd window size</span>
+    <span class="n">cellStatesSmooth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">cellStates</span><span class="p">)</span>
+    <span class="n">pseudotimeOrderedIndexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">pseudotimes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pseudotimeOrderedIndexes</span><span class="p">)):</span>
+        <span class="n">pseudotimeWindowIndexes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pseudotimeOriginalIndex</span> <span class="o">=</span> <span class="n">pseudotimeOrderedIndexes</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">windowStart</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">windowSize</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">windowStart</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">windowStart</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">windowEnd</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">windowSize</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1">#Add one because not inclusive</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">windowEnd</span> <span class="o">&gt;</span> <span class="n">cells</span><span class="p">):</span>
+            <span class="n">windowEnd</span> <span class="o">=</span> <span class="n">cells</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">windowStart</span><span class="p">,</span> <span class="n">windowEnd</span><span class="p">):</span>
+            <span class="n">pseudotimeWindowIndexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pseudotimeOrderedIndexes</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">cellStatesSmooth</span><span class="p">[:,</span> <span class="n">pseudotimeOriginalIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+            <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">pseudotimeWindowIndexes</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cellStatesSmooth</span></div>
+
+
+<div class="viewcode-block" id="clusterGenes"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.clusterGenes">[docs]</a><span class="k">def</span> <span class="nf">clusterGenes</span><span class="p">(</span><span class="n">n</span><span class="p">,</span>
+                 <span class="n">cells</span><span class="p">,</span>
+                 <span class="n">cellStates</span><span class="p">,</span>
+                 <span class="n">perplexity</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                 <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                 <span class="n">min_samples</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="c1">#numClusters = 100</span>
+
+    <span class="c1">#numNeighbors = 5</span>
+
+    <span class="n">distanceMatrix</span> <span class="o">=</span> <span class="n">getCorrelationMatrix</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Distance Matrix: &quot;</span><span class="p">,</span> <span class="n">distanceMatrix</span><span class="p">)</span>
+        <span class="c1">#print(distanceMatrix)</span>
+
+    <span class="c1">#trace = go.Heatmap(z=distanceMatrix)</span>
+    <span class="c1">#data = [trace]</span>
+    <span class="c1">#heatmapFile = &quot;heatmap_&quot; + datetime.datetime.now().strftime(&quot;%m-%d-%Y+%H:%M:%S&quot;)</span>
+
+    <span class="c1">#plotly.offline.plot(data, filename=heatmapFile)</span>
+    <span class="c1">#py.iplot(data, filename=heatmapFile)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">TSNE</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">perplexity</span><span class="o">=</span><span class="n">perplexity</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tsneResult</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span>
+        <span class="n">cellStates</span><span class="p">)</span>  <span class="c1">#Transpose because cells are data we are clustering</span>
+
+    <span class="n">dbClust</span> <span class="o">=</span> <span class="n">DBSCAN</span><span class="p">(</span>
+        <span class="n">eps</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">min_samples</span><span class="o">=</span><span class="n">min_samples</span><span class="p">,</span>
+        <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">distanceMatrix</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">dbClust</span><span class="o">.</span><span class="n">labels_</span>  <span class="c1">#Labels of -1 are noisy</span>
+
+    <span class="c1">#dbClust = DBSCAN(eps=epsilon, min_samples=min_samples, metric=&quot;precomputed&quot;).fit(distanceMatrix)</span>
+    <span class="c1">#labels = dbClust.labels_ #Labels of -1 are noisy</span>
+
+    <span class="c1">#aggClust = AgglomerativeClustering(n_clusters=numClusters, affinity=&quot;precomputed&quot;, linkage=&quot;average&quot;).fit(distanceMatrix)</span>
+    <span class="c1">#labels = aggClust.labels_</span>
+
+    <span class="c1">#specClust =  SpectralClustering(n_clusters=numClusters, affinity=&quot;precomputed&quot;, n_neighbors=numNeighbors).fit(distanceMatrix)</span>
+    <span class="c1">#labels = specClust.labels_</span>
+
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Gene Clusters: &quot;</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+    <span class="n">newClustNumber</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>  <span class="c1">#There are noise labels</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">newClustNumber</span>
+                <span class="n">newClustNumber</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">labelsSet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+    <span class="n">palette</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s2">&quot;hls&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">labelsSet</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+
+        <span class="n">colorHandles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cellTypeNum</span> <span class="ow">in</span> <span class="n">labelsSet</span><span class="p">:</span>
+            <span class="n">colorHandles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">palette</span><span class="p">[</span><span class="n">cellTypeNum</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">cellTypeNum</span><span class="p">))</span>
+
+        <span class="c1"># plt.legend(handles=colorHandles, borderaxespad=0)</span>
+
+        <span class="n">sc</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+            <span class="n">tsneResult</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">tsneResult</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">lw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">palette</span><span class="p">[</span><span class="n">labels</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s1">&#39;cluster.tiff&#39;</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">labels</span></div>
+
+
+<div class="viewcode-block" id="getCorrelationMatrix"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.getCorrelationMatrix">[docs]</a><span class="k">def</span> <span class="nf">getCorrelationMatrix</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">):</span>
+    <span class="n">cellStatesNorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">cellStates</span><span class="p">)</span>
+
+    <span class="n">geneMeans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cellStatesNorm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cells</span><span class="p">):</span>
+        <span class="n">cellStatesNorm</span><span class="p">[:,</span> <span class="n">cell</span><span class="p">]</span> <span class="o">-=</span> <span class="n">geneMeans</span>
+
+    <span class="n">geneStds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">cellStatesNorm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">geneStds</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">cellStatesNorm</span><span class="p">[</span><span class="n">gene</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/=</span> <span class="n">geneStds</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span>
+            <span class="c1">#plt.hist(cellStatesNorm[gene, :])</span>
+            <span class="c1">#plt.show()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cellStatesNorm</span><span class="p">[</span><span class="n">gene</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span>
+
+    <span class="n">correlationMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cellStatesNorm</span><span class="p">,</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">cellStatesNorm</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">cells</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">distanceMatrix</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="o">-</span> <span class="n">correlationMatrix</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="k">return</span> <span class="n">distanceMatrix</span></div>
+
+
+<div class="viewcode-block" id="plotGenesOverPseudotime"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.plotGenesOverPseudotime">[docs]</a><span class="k">def</span> <span class="nf">plotGenesOverPseudotime</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">):</span>
+    <span class="n">sortedIndexes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">pseudotimes</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Gene &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; over Pseudotime&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">pseudotimes</span><span class="p">[</span><span class="n">sortedIndexes</span><span class="p">],</span>
+                       <span class="n">cellStates</span><span class="p">[</span><span class="n">gene</span><span class="p">,</span> <span class="n">sortedIndexes</span><span class="p">])</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s1">&#39;Gene_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span> <span class="o">+</span>
+                             <span class="s1">&#39;_over_pseudotime.tiff&#39;</span><span class="p">))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="crossValidateData"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.crossValidateData">[docs]</a><span class="k">def</span> <span class="nf">crossValidateData</span><span class="p">(</span><span class="n">n</span><span class="p">,</span>
+                      <span class="n">cells</span><span class="p">,</span>
+                      <span class="n">cellStates</span><span class="p">,</span>
+                      <span class="n">pseudotimes</span><span class="p">,</span>
+                      <span class="n">cellTypesRecord</span><span class="p">,</span>
+                      <span class="n">W_real</span><span class="p">,</span>
+                      <span class="n">geneClusters</span><span class="p">,</span>
+                      <span class="n">numPartitions</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                      <span class="n">alphaMin</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+                      <span class="n">alphaMax</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+                      <span class="n">alphaMultStep</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                      <span class="n">pseudotimeThresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="n">meanSquaredErrorThreshold</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="n">minMeanSquaredErrorArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">numPartitions</span><span class="p">)</span>
+    <span class="n">alphaArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">numPartitions</span><span class="p">)</span>
+    <span class="n">sensitivityArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">numPartitions</span><span class="p">)</span>
+    <span class="n">specificityArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">numPartitions</span><span class="p">)</span>
+    <span class="n">precisionArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">numPartitions</span><span class="p">)</span>
+    <span class="n">W_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">numPartitions</span><span class="p">))</span>
+
+    <span class="n">totalMinMeanSquaredError</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+    <span class="n">totalMinMeanSquaredErrorIndex</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cluster Membership: &quot;</span><span class="p">,</span> <span class="n">Counter</span><span class="p">(</span><span class="n">geneClusters</span><span class="p">))</span>
+
+    <span class="n">cellIndices</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cells</span><span class="p">)]</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">cellIndices</span><span class="p">)</span>
+    <span class="n">cellsPerPartition</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cells</span> <span class="o">/</span> <span class="n">numPartitions</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">partition</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numPartitions</span><span class="p">):</span>
+        <span class="n">cvStart</span> <span class="o">=</span> <span class="n">partition</span> <span class="o">*</span> <span class="n">cellsPerPartition</span>
+        <span class="n">cvEnd</span> <span class="o">=</span> <span class="p">(</span><span class="n">partition</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cellsPerPartition</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">partition</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">numPartitions</span><span class="p">:</span>
+            <span class="n">cvEnd</span> <span class="o">=</span> <span class="n">cells</span>
+        <span class="n">cvIndices</span> <span class="o">=</span> <span class="n">cellIndices</span><span class="p">[</span><span class="n">cvStart</span><span class="p">:</span><span class="n">cvEnd</span><span class="p">]</span>
+        <span class="n">dataIndices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cellIndices</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">cvIndices</span><span class="p">))</span>
+
+        <span class="n">dataCellStates</span> <span class="o">=</span> <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">dataIndices</span><span class="p">]</span>
+        <span class="n">dataPseudotimes</span> <span class="o">=</span> <span class="n">pseudotimes</span><span class="p">[</span><span class="n">dataIndices</span><span class="p">]</span>
+        <span class="n">dataCellTypesRecord</span> <span class="o">=</span> <span class="n">cellTypesRecord</span><span class="p">[</span><span class="n">dataIndices</span><span class="p">]</span>
+
+        <span class="n">cvCellStates</span> <span class="o">=</span> <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cvIndices</span><span class="p">]</span>
+        <span class="n">cvPseudotimes</span> <span class="o">=</span> <span class="n">pseudotimes</span><span class="p">[</span><span class="n">cvIndices</span><span class="p">]</span>
+        <span class="n">cvCellTypesRecord</span> <span class="o">=</span> <span class="n">cellTypesRecord</span><span class="p">[</span><span class="n">cvIndices</span><span class="p">]</span>
+
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">alphaMax</span>
+
+        <span class="n">minMeanSquaredError</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="c1">#minMeanSquaredErrorDiff = float(&quot;inf&quot;)</span>
+        <span class="n">optAlpha</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">optW</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">optW_random</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">optSensitivity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">optSpecificity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">optPrecision</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">meanSquaredError</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">&gt;</span> <span class="n">alphaMin</span> <span class="ow">and</span> <span class="n">meanSquaredError</span> <span class="o">&lt;</span>
+               <span class="n">meanSquaredErrorThreshold</span> <span class="o">*</span> <span class="n">minMeanSquaredError</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Analysis: &quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alpha: &quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+            <span class="n">W</span> <span class="o">=</span> <span class="n">findWMatrix</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">dataCellStates</span><span class="p">,</span>
+                            <span class="n">dataCellTypesRecord</span><span class="p">,</span> <span class="n">pseudotimeThresh</span><span class="p">,</span>
+                            <span class="n">dataPseudotimes</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Magnitude of W predicted: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">W</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Magnitude of W_real: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">W_real</span><span class="p">))</span>
+
+            <span class="n">sensitivity</span><span class="p">,</span> <span class="n">specificity</span><span class="p">,</span> <span class="n">precision</span> <span class="o">=</span> <span class="n">compareToRealW</span><span class="p">(</span>
+                <span class="n">n</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">)</span>
+            <span class="n">meanSquaredError</span> <span class="o">=</span> <span class="n">getCVCost</span><span class="p">(</span><span class="n">pseudotimeThresh</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">cvCellStates</span><span class="p">,</span>
+                                         <span class="n">cvPseudotimes</span><span class="p">,</span> <span class="n">cvCellTypesRecord</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mean Squared Error: &quot;</span><span class="p">,</span> <span class="n">meanSquaredError</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Comparison to Random W:&quot;</span><span class="p">)</span>
+
+            <span class="n">W_random</span> <span class="o">=</span> <span class="n">generateRandomW</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+            <span class="n">compareToRealW</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W_random</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">)</span>
+            <span class="n">randomMeanSquaredError</span> <span class="o">=</span> <span class="n">getCVCost</span><span class="p">(</span><span class="n">pseudotimeThresh</span><span class="p">,</span> <span class="n">W_random</span><span class="p">,</span>
+                                               <span class="n">cvCellStates</span><span class="p">,</span> <span class="n">cvPseudotimes</span><span class="p">,</span>
+                                               <span class="n">cvCellTypesRecord</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Random W Mean Squared Error: &quot;</span><span class="p">,</span> <span class="n">randomMeanSquaredError</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">meanSquaredError</span> <span class="o">&lt;</span> <span class="n">minMeanSquaredError</span><span class="p">):</span>
+                <span class="n">minMeanSquaredError</span> <span class="o">=</span> <span class="n">meanSquaredError</span>
+                <span class="c1">#minMeanSquaredErrorDiff = (randomMeanSquaredError - meanSquaredError)</span>
+                <span class="n">optAlpha</span> <span class="o">=</span> <span class="n">alpha</span>
+                <span class="n">optSensitivity</span> <span class="o">=</span> <span class="n">sensitivity</span>
+                <span class="n">optSpecificity</span> <span class="o">=</span> <span class="n">specificity</span>
+                <span class="n">optPrecision</span> <span class="o">=</span> <span class="n">precision</span>
+                <span class="n">optW</span> <span class="o">=</span> <span class="n">W</span>
+                <span class="n">optW_random</span> <span class="o">=</span> <span class="n">W_random</span>
+
+            <span class="n">alpha</span> <span class="o">*=</span> <span class="n">alphaMultStep</span>
+
+        <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal Alpha: &quot;</span><span class="p">,</span> <span class="n">optAlpha</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal MSE: &quot;</span><span class="p">,</span> <span class="n">minMeanSquaredError</span><span class="p">)</span>
+        <span class="n">minMeanSquaredErrorArray</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span> <span class="o">=</span> <span class="n">minMeanSquaredError</span>
+        <span class="n">alphaArray</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span> <span class="o">=</span> <span class="n">optAlpha</span>
+        <span class="n">sensitivityArray</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span> <span class="o">=</span> <span class="n">optSensitivity</span>
+        <span class="n">specificityArray</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span> <span class="o">=</span> <span class="n">optSpecificity</span>
+        <span class="n">precisionArray</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span> <span class="o">=</span> <span class="n">optPrecision</span>
+        <span class="n">W_array</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">partition</span><span class="p">]</span> <span class="o">=</span> <span class="n">optW</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">minMeanSquaredError</span> <span class="o">&lt;</span> <span class="n">totalMinMeanSquaredError</span><span class="p">):</span>
+            <span class="n">minMeanSquaredError</span> <span class="o">=</span> <span class="n">totalMinMeanSquaredError</span>
+            <span class="n">totalMinMeanSquaredErrorIndex</span> <span class="o">=</span> <span class="n">partition</span>
+
+        <span class="c1">#W_cluster = getWClusterPred(n, optW, geneClusters)</span>
+        <span class="c1">#W_real_cluster = getWClusterReal(n, W_real, geneClusters)</span>
+        <span class="c1">#W_random_cluster = getWClusterPred(n, optW_random, geneClusters)</span>
+
+        <span class="n">plotROCCurve</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">optW</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">)</span>
+        <span class="n">plotROCCurve</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">optW_random</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Summary Statistics: &quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alpha Mean and Sd: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">alphaArray</span><span class="p">),</span> <span class="s2">&quot;, &quot;</span><span class="p">,</span>
+              <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">alphaArray</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MSE Mean and Sd: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">minMeanSquaredErrorArray</span><span class="p">),</span> <span class="s2">&quot;, &quot;</span><span class="p">,</span>
+              <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">minMeanSquaredErrorArray</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sensitivity Mean and Sd: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sensitivityArray</span><span class="p">),</span> <span class="s2">&quot;, &quot;</span><span class="p">,</span>
+              <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">sensitivityArray</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Specificity Mean and Sd: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">specificityArray</span><span class="p">),</span> <span class="s2">&quot;, &quot;</span><span class="p">,</span>
+              <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">specificityArray</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Precision Mean and Sd: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">precisionArray</span><span class="p">),</span> <span class="s2">&quot;, &quot;</span><span class="p">,</span>
+              <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">precisionArray</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;W Sd: &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">W_array</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)))</span>
+
+    <span class="n">finalW</span> <span class="o">=</span> <span class="n">W_array</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">totalMinMeanSquaredErrorIndex</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">finalW</span></div>
+
+
+<div class="viewcode-block" id="findWMatrix"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.findWMatrix">[docs]</a><span class="k">def</span> <span class="nf">findWMatrix</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">cellStatesNew</span><span class="p">,</span> <span class="n">cellTypesRecordNew</span><span class="p">,</span>
+                <span class="n">pseudotimeThresh</span><span class="p">,</span> <span class="n">pseudotimesNew</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+    <span class="c1">#T = np.load(&quot;T.npy&quot;)#</span>
+    <span class="c1">#T = np.zeros(shape=(n,n))#np.random.rand(n,n)#</span>
+    <span class="c1">#M = np.load(&quot;M.npy&quot;)#</span>
+    <span class="c1">#M = np.zeros(shape=(n,n))#np.random.rand(n,n)#</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">cellStatesNew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cellStatesNew</span><span class="p">,</span> <span class="n">cellStatesNew</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">pseudotimesNew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">pseudotimesNew</span><span class="p">,</span> <span class="n">pseudotimesNew</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">cellTypesRecordNew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cellTypesRecordNew</span><span class="p">,</span>
+                                    <span class="n">cellTypesRecordNew</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="c1"># try:</span>
+    <span class="c1"># 	raise Exception(&#39;Starting Anew&#39;)</span>
+    <span class="c1"># 	cellStatesTotal = np.load(&quot;cellStatesInfSaved.npy&quot;)</span>
+    <span class="c1"># 	pseudotimesTotal = np.load(&quot;pseudotimesInfSaved.npy&quot;)</span>
+    <span class="c1"># 	cellTypesRecordTotal = np.load(&quot;cellTypesRecordTotal.npy&quot;)</span>
+    <span class="c1"># 	cellStatesTotal = np.concatenate((cellStatesTotal, cellStatesNew), axis=2)</span>
+    <span class="c1"># 	pseudotimesTotal = np.concatenate((pseudotimesTotal, pseudotimesNew), axis=1)</span>
+    <span class="c1"># 	cellTypesRecordTotal = np.concatenate((cellTypesRecordTotal, cellTypesRecordNew), axis=1)</span>
+    <span class="c1"># except:</span>
+    <span class="c1"># 	print(&quot;Exception!&quot;)</span>
+    <span class="n">cellStatesTotal</span> <span class="o">=</span> <span class="n">cellStatesNew</span>
+    <span class="n">pseudotimesTotal</span> <span class="o">=</span> <span class="n">pseudotimesNew</span>
+    <span class="n">cellTypesRecordTotal</span> <span class="o">=</span> <span class="n">cellTypesRecordNew</span>
+
+    <span class="n">numDatasets</span> <span class="o">=</span> <span class="n">cellStatesTotal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">totalNumCellPairs</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s2">&quot;cellStatesInfSaved&quot;</span><span class="p">),</span> <span class="n">cellStatesTotal</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s2">&quot;pseudotimesInfSaved&quot;</span><span class="p">),</span> <span class="n">pseudotimesTotal</span><span class="p">)</span>
+
+    <span class="c1">#print(&quot;Finding Cell Pairs&quot;)</span>
+
+    <span class="n">cellPairsTotal</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numDatasets</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">datasetIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numDatasets</span><span class="p">):</span>
+        <span class="n">cellStates</span> <span class="o">=</span> <span class="n">cellStatesTotal</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">datasetIndex</span><span class="p">]</span>
+        <span class="n">pseudotimes</span> <span class="o">=</span> <span class="n">pseudotimesTotal</span><span class="p">[:,</span> <span class="n">datasetIndex</span><span class="p">]</span>
+        <span class="n">cellTypesRecord</span> <span class="o">=</span> <span class="n">cellTypesRecordTotal</span><span class="p">[:,</span> <span class="n">datasetIndex</span><span class="p">]</span>
+        <span class="n">cellPairs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">]</span>  <span class="c1">#Find these using pseudotime - can be made more efficient</span>
+        <span class="k">for</span> <span class="n">cellType</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">cellTypesRecord</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">cellsOfType</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cellTypesRecord</span> <span class="o">==</span> <span class="n">cellType</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cell1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">cellsOfType</span><span class="p">):</span>
+                <span class="n">pseudotime1</span> <span class="o">=</span> <span class="n">pseudotimes</span><span class="p">[</span><span class="n">cell1</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">cell2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">cellsOfType</span><span class="p">):</span>
+                    <span class="n">pseudotime2</span> <span class="o">=</span> <span class="n">pseudotimes</span><span class="p">[</span><span class="n">cell2</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">pseudotime1</span> <span class="o">-</span> <span class="n">pseudotime2</span><span class="p">)</span> <span class="o">&lt;=</span>
+                            <span class="n">pseudotimeThresh</span> <span class="ow">and</span> <span class="n">pseudotime1</span> <span class="o">&gt;</span> <span class="n">pseudotime2</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cell1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cell2</span><span class="p">]</span>
+                                   <span class="o">!=</span> <span class="mi">0</span><span class="p">)):</span>
+                            <span class="n">cellPairs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">cell1</span><span class="p">,</span> <span class="n">cell2</span><span class="p">])</span>
+        <span class="n">cellPairsTotal</span><span class="p">[</span><span class="n">datasetIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">cellPairs</span>
+        <span class="n">totalNumCellPairs</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s2">&quot;cellPairsTotal&quot;</span><span class="p">),</span> <span class="n">cellPairsTotal</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Num Cell Pairs: &quot;</span><span class="p">,</span> <span class="n">totalNumCellPairs</span><span class="p">)</span>
+
+    <span class="c1">#print(&quot;Finding Tau&quot;)</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="c1">#negRangeBound = np.amin(cellStates, axis = 1)</span>
+    <span class="c1">#posRangeBound = np.amax(cellStates, axis = 1)</span>
+    <span class="c1">#print(&quot;Negative Range Bound:&quot;, negRangeBound)</span>
+    <span class="c1">#print(&quot;Positive Range Bound:&quot;, posRangeBound)</span>
+    <span class="c1"># for gene in range(n):</span>
+    <span class="c1"># 	tauEstCells = np.zeros(shape=len(cellPairs))</span>
+    <span class="c1"># 	for cellPairIndex in range(len(cellPairs)):</span>
+    <span class="c1"># 		cellPair = cellPairs[cellPairIndex]</span>
+    <span class="c1"># 		cellIndex1 = cellPair[0]</span>
+    <span class="c1"># 		cellIndex2 = cellPair[1]</span>
+    <span class="c1"># 		Sc1 = cellStates[:, cellIndex1]</span>
+    <span class="c1"># 		Sc2 = cellStates[:, cellIndex2]</span>
+    <span class="c1"># 		derivative = (Sc1[gene] - Sc2[gene])/(pseudotimes[cellIndex1] - pseudotimes[cellIndex2])</span>
+    <span class="c1"># 		if(derivative != 0):</span>
+    <span class="c1"># 			if(derivative &gt; 0):</span>
+    <span class="c1"># 				tauEstCells[cellPairIndex] = (1 - Sc2[gene])/derivative</span>
+    <span class="c1"># 			elif(derivative &lt; 0):</span>
+    <span class="c1"># 				tauEstCells[cellPairIndex] = (-1 - Sc2[gene])/derivative</span>
+    <span class="c1"># 		else:</span>
+    <span class="c1"># 			tauEstCells[cellPairIndex] = float(&quot;inf&quot;)</span>
+    <span class="c1"># 	print(scp.mquantiles(tauEstCells))</span>
+    <span class="c1"># 	tau[gene] = np.min(tauEstCells)</span>
+    <span class="c1"># print(tau)</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="n">pseudotimeThresh</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span>
+        <span class="n">n</span><span class="p">))</span>  <span class="c1">#Doing this right now because don&#39;t need tau</span>
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s2">&quot;tau&quot;</span><span class="p">),</span> <span class="n">tau</span><span class="p">)</span>
+
+    <span class="c1">#print(&quot;Finding W&quot;)</span>
+
+    <span class="n">expProdsTotal</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numDatasets</span><span class="p">)]</span>
+    <span class="n">expProdMeansTotal</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numDatasets</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">datasetIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numDatasets</span><span class="p">):</span>
+        <span class="n">cellPairs</span> <span class="o">=</span> <span class="n">cellPairsTotal</span><span class="p">[</span><span class="n">datasetIndex</span><span class="p">]</span>
+        <span class="n">cellStates</span> <span class="o">=</span> <span class="n">cellStatesTotal</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">datasetIndex</span><span class="p">]</span>
+        <span class="n">pseudotimes</span> <span class="o">=</span> <span class="n">pseudotimesTotal</span><span class="p">[:,</span> <span class="n">datasetIndex</span><span class="p">]</span>
+        <span class="n">expProds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)))</span>
+        <span class="c1">#print(&quot;Num Cell Pairs: &quot;, len(cellPairs))</span>
+        <span class="k">for</span> <span class="n">cellPairIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)):</span>
+            <span class="n">cellPair</span> <span class="o">=</span> <span class="n">cellPairs</span><span class="p">[</span><span class="n">cellPairIndex</span><span class="p">]</span>
+            <span class="n">cellIndex1</span> <span class="o">=</span> <span class="n">cellPair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cellIndex2</span> <span class="o">=</span> <span class="n">cellPair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">Sc1</span> <span class="o">=</span> <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cellIndex1</span><span class="p">]</span>
+            <span class="n">Sc2</span> <span class="o">=</span> <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cellIndex2</span><span class="p">]</span>
+            <span class="n">derivative</span> <span class="o">=</span> <span class="p">(</span><span class="n">Sc1</span> <span class="o">-</span> <span class="n">Sc2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">pseudotimes</span><span class="p">[</span><span class="n">cellIndex1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pseudotimes</span><span class="p">[</span><span class="n">cellIndex2</span><span class="p">])</span>
+            <span class="c1">#print(&quot;Pseudotime Differences: &quot;, pseudotimes[cellIndex1] - pseudotimes[cellIndex2] + pseudotimeOffset)</span>
+            <span class="c1">#print(&quot;Derivative: &quot;, derivative)</span>
+            <span class="c1">#print(&quot;Pre Arctanh: &quot;, np.multiply(tau, derivative) + Sc2)</span>
+            <span class="n">product</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">tau</span><span class="p">,</span> <span class="n">derivative</span><span class="p">)</span> <span class="o">+</span> <span class="n">Sc2</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">product</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">product</span> <span class="o">=</span> <span class="mf">0.999</span> <span class="o">*</span> <span class="n">product</span>
+            <span class="n">expProds</span><span class="p">[:,</span> <span class="n">cellPairIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctanh</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+            <span class="c1">#print(&quot;ExpProd: &quot;, np.arctanh(np.multiply(tau, derivative) + Sc2))</span>
+            <span class="c1">#print(&quot;ActualProd: &quot;, np.dot(W_real, Sc2))</span>
+        <span class="n">expProdsTotal</span><span class="p">[</span><span class="n">datasetIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">expProds</span>
+        <span class="n">expProdMeansTotal</span><span class="p">[</span><span class="n">datasetIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">expProds</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">geneMeansTotal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cellStatesTotal</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">totalNumCellPairs</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">totalNumCellPairs</span><span class="p">))</span>
+        <span class="n">cellPairIndexOffset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">datasetIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numDatasets</span><span class="p">):</span>
+            <span class="n">cellPairs</span> <span class="o">=</span> <span class="n">cellPairsTotal</span><span class="p">[</span><span class="n">datasetIndex</span><span class="p">]</span>
+            <span class="n">cellStates</span> <span class="o">=</span> <span class="n">cellStatesTotal</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">datasetIndex</span><span class="p">]</span>
+            <span class="n">expProdMeans</span> <span class="o">=</span> <span class="n">expProdMeansTotal</span><span class="p">[</span><span class="n">datasetIndex</span><span class="p">]</span>
+            <span class="n">geneMeans</span> <span class="o">=</span> <span class="n">geneMeansTotal</span><span class="p">[:,</span> <span class="n">datasetIndex</span><span class="p">]</span>
+            <span class="n">expProds</span> <span class="o">=</span> <span class="n">expProdsTotal</span><span class="p">[</span><span class="n">datasetIndex</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">cellPairIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)):</span>
+                <span class="n">cellPair</span> <span class="o">=</span> <span class="n">cellPairs</span><span class="p">[</span><span class="n">cellPairIndex</span><span class="p">]</span>
+                <span class="n">cellIndex1</span> <span class="o">=</span> <span class="n">cellPair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">cellIndex2</span> <span class="o">=</span> <span class="n">cellPair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">Sc1</span> <span class="o">=</span> <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cellIndex1</span><span class="p">]</span>
+                <span class="n">Sc2</span> <span class="o">=</span> <span class="n">cellStates</span><span class="p">[:,</span> <span class="n">cellIndex2</span><span class="p">]</span>
+                <span class="n">expProd</span> <span class="o">=</span> <span class="n">expProds</span><span class="p">[:,</span> <span class="n">cellPairIndex</span><span class="p">]</span>
+                <span class="n">y</span><span class="p">[</span><span class="n">cellPairIndexOffset</span>
+                  <span class="o">+</span> <span class="n">cellPairIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">expProd</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">-</span> <span class="n">expProdMeans</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">cellPairIndexOffset</span> <span class="o">+</span> <span class="n">cellPairIndex</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">Sc2</span> <span class="o">-</span> <span class="n">geneMeans</span>
+        <span class="n">cellPairIndexOffset</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)</span>
+        <span class="n">reg_result</span> <span class="o">=</span> <span class="n">lasso_regression</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="p">)</span>  <span class="c1">#neural_network(n, data, y, alpha)#linear_reg(data, y)#</span>
+        <span class="c1">#print(&quot;Gene &quot;, gene, &quot; RSS: &quot;, reg_result[0])</span>
+        <span class="c1">#print(&quot;Expected Cost: &quot;, np.sum((y - np.dot(data, np.transpose(W_real[gene, :])))**2))</span>
+        <span class="c1">#print(&quot;Base Cost:&quot;, np.sum(y**2))</span>
+        <span class="c1">#print(&quot;W[gene]: &quot;, reg_result[2:])</span>
+        <span class="c1">#print(&quot;W_real[gene]: &quot;, W_real[gene, :])</span>
+        <span class="n">W</span><span class="p">[</span><span class="n">gene</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">reg_result</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="c1">#print(&quot;W[gene] connections: &quot;, np.nonzero(W[gene, :]))</span>
+        <span class="c1">#print(&quot;W_real[gene] connections: &quot;, np.nonzero(W_real[gene, :]))</span>
+
+    <span class="c1">#print(&quot;Predicted W Matrix : &quot;, W)</span>
+    <span class="c1">#print(&quot;Real W Matrix: &quot;, W_real)</span>
+
+    <span class="c1"># totalCost = 0</span>
+    <span class="c1"># totalExpCost = 0</span>
+    <span class="c1"># for cellPairIndex in range(len(cellPairs)):</span>
+    <span class="c1"># 	cellPair = cellPairs[cellPairIndex]</span>
+    <span class="c1"># 	cellIndex1 = cellPair[0]</span>
+    <span class="c1"># 	cellIndex2 = cellPair[1]</span>
+    <span class="c1"># 	Sc1 = cellStates[:, cellIndex1]</span>
+    <span class="c1"># 	Sc2 = cellStates[:, cellIndex2]</span>
+    <span class="c1"># 	expProd = expProds[:, cellPairIndex]</span>
+    <span class="c1"># 	predictedSc1 = np.dot(W, Sc2)</span>
+    <span class="c1"># 	expSc1 = np.dot(W_real, Sc2)</span>
+    <span class="c1"># 	totalCost = totalCost + np.sum((expProd - predictedSc1)**2)</span>
+    <span class="c1"># 	totalExpCost = totalExpCost + np.sum((expProd - expSc1)**2)</span>
+    <span class="c1"># print(&quot;Total Cost: &quot;, totalCost)</span>
+    <span class="c1"># print(&quot;Total Expected Cost: &quot;, totalExpCost)</span>
+
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s2">&quot;W&quot;</span><span class="p">),</span> <span class="n">W</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">W</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="lasso_regression"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.lasso_regression">[docs]</a><span class="k">def</span> <span class="nf">lasso_regression</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">y_vals</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">models_to_plot</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="c1">#Fit the model</span>
+    <span class="n">lassoreg</span> <span class="o">=</span> <span class="n">Lasso</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span> <span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#print(&quot;Data: &quot;, data)</span>
+    <span class="c1">#print(&quot;y_vals: &quot;, y_vals)</span>
+    <span class="n">lassoreg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">y_vals</span><span class="p">)</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">lassoreg</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1">#Check if a plot is to be made for the entered alpha</span>
+    <span class="k">if</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="n">models_to_plot</span> <span class="ow">and</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">y_vals</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Plot for alpha: </span><span class="si">%.3g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">alpha</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s1">&#39;alpha_</span><span class="si">%.3g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="p">)))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1">#Return the result in pre-defined format</span>
+    <span class="n">rss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">y_pred</span> <span class="o">-</span> <span class="n">y_vals</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="n">rss</span><span class="p">]</span>
+    <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">lassoreg</span><span class="o">.</span><span class="n">intercept_</span><span class="p">])</span>
+    <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lassoreg</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="compareToRealW"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.compareToRealW">[docs]</a><span class="k">def</span> <span class="nf">compareToRealW</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">):</span>
+    <span class="n">geneClustersSet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">geneClusters</span><span class="p">))</span>
+    <span class="n">W_diff_matrix</span> <span class="o">=</span> <span class="n">W</span> <span class="o">-</span> <span class="n">W_real</span>
+    <span class="n">W_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">W_diff_matrix</span><span class="p">)</span>
+
+    <span class="c1">#print(&quot;Analysis: &quot;)</span>
+    <span class="c1">#print(&quot;Difference in W&#39;s: &quot;, W_diff)</span>
+    <span class="c1">#print(&quot;Proportion of Difference: &quot;, W_diff/(np.absolute(np.linalg.norm(W_real) + np.linalg.norm(W))))</span>
+    <span class="c1">#print(&quot;Total Magnitude of W predicted: &quot;, np.linalg.norm(W))</span>
+    <span class="c1">#print(&quot;Total Magnitude of W_real: &quot;, np.linalg.norm(W_real))</span>
+
+    <span class="c1">#plt.title(&quot;W Predicted vs W Real&quot;)</span>
+    <span class="c1">#plt.scatter(W.flatten(), W_real.flatten())</span>
+    <span class="c1">#plt.show()</span>
+
+    <span class="c1">#print(&quot;Spearman rho:&quot;, spearmanr(W.flatten(), W_real.flatten())[0])</span>
+
+    <span class="c1">#print(&quot;Cluster Membership: &quot;, Counter(geneClusters))</span>
+
+    <span class="n">sensitivity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">specificity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">precision</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">truePositives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">trueNegatives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">falsePositives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">falseNegatives</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">W_cluster</span> <span class="o">=</span> <span class="n">getWClusterPred</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">)</span>
+    <span class="n">W_real_cluster</span> <span class="o">=</span> <span class="n">getWClusterReal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">clusterNum</span> <span class="ow">in</span> <span class="n">geneClustersSet</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">W_cluster</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">clusterNum</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">predictedVal</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">predictedVal</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">trueVal</span> <span class="o">=</span> <span class="n">W_real_cluster</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">clusterNum</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">trueNegatives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">truePositives</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">clusterNum</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">falseNegatives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">falsePositives</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TP: &quot;</span><span class="p">,</span> <span class="n">truePositives</span><span class="p">,</span> <span class="s2">&quot;. FP: &quot;</span><span class="p">,</span> <span class="n">falsePositives</span><span class="p">,</span> <span class="s2">&quot;. TN: &quot;</span><span class="p">,</span>
+              <span class="n">trueNegatives</span><span class="p">,</span> <span class="s2">&quot;. FN: &quot;</span><span class="p">,</span> <span class="n">falseNegatives</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sensitivity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">truePositives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">truePositives</span> <span class="o">+</span> <span class="n">falseNegatives</span><span class="p">)</span>
+        <span class="n">specificity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">trueNegatives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">trueNegatives</span> <span class="o">+</span> <span class="n">falsePositives</span><span class="p">)</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">truePositives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">truePositives</span> <span class="o">+</span> <span class="n">falsePositives</span><span class="p">)</span>
+        <span class="n">negativePredictiveValue</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">trueNegatives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">trueNegatives</span> <span class="o">+</span> <span class="n">falseNegatives</span><span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">truePositives</span> <span class="o">+</span> <span class="n">trueNegatives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">truePositives</span> <span class="o">+</span> <span class="n">falseNegatives</span> <span class="o">+</span> <span class="n">trueNegatives</span> <span class="o">+</span> <span class="n">falsePositives</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sensitivity/Recall: &quot;</span><span class="p">,</span> <span class="n">sensitivity</span><span class="p">,</span> <span class="s2">&quot;, Specificity: &quot;</span><span class="p">,</span>
+                  <span class="n">specificity</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Precision: &quot;</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="s2">&quot;, Negative Predictive Value: &quot;</span><span class="p">,</span>
+                  <span class="n">negativePredictiveValue</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Accuracy: &quot;</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error in calculating statistics&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sensitivity</span><span class="p">,</span> <span class="n">specificity</span><span class="p">,</span> <span class="n">precision</span></div>
+
+
+<div class="viewcode-block" id="plotROCCurve"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.plotROCCurve">[docs]</a><span class="k">def</span> <span class="nf">plotROCCurve</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">):</span>
+    <span class="c1">#W_flattened = np.abs(W.flatten())</span>
+    <span class="c1">#W_real_flattened = np.abs(W_real.flatten())</span>
+    <span class="c1">#W_real_flattened_binary = np.ones(shape=W_real_flattened.shape)</span>
+    <span class="c1">#W_real_flattened_binary[np.where(W_real_flattened == 0)] = 0</span>
+    <span class="c1">#W_real_flattened_binary = W_real_flattened</span>
+    <span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span> <span class="o">=</span> <span class="n">roc_metrics</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
+    <span class="n">AUC</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">auc</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">__verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ROC AUC: &quot;</span><span class="p">,</span> <span class="n">AUC</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FPR: &quot;</span><span class="p">,</span> <span class="n">fpr</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TPR: &quot;</span><span class="p">,</span> <span class="n">tpr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;ROC Curve&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s1">&#39;ROC_Curve.tiff&#39;</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="roc_metrics"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.roc_metrics">[docs]</a><span class="k">def</span> <span class="nf">roc_metrics</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">W</span><span class="p">):</span>
+    <span class="n">geneClustersSet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">geneClusters</span><span class="p">))</span>
+    <span class="n">tprList</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">fprList</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">sensitivity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">specificity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">precision</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">truePositives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">trueNegatives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">falsePositives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">falseNegatives</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">W_flattened</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">getWClusterPred</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">W_real_flattened_binary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+        <span class="n">getWClusterReal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="n">steps</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">stepSize</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">W_flattened</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">W_flattened</span><span class="p">))</span> <span class="o">/</span> <span class="n">steps</span>
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">currentThreshold</span> <span class="o">=</span> <span class="n">step</span> <span class="o">*</span> <span class="n">stepSize</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">W_flattened</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">W_flattened</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">currentThreshold</span><span class="p">):</span>
+                <span class="n">predictedVal</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">predictedVal</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">trueVal</span> <span class="o">=</span> <span class="n">W_real_flattened_binary</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">trueNegatives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">truePositives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">falseNegatives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">predictedVal</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">trueVal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">falsePositives</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TP: &quot;</span><span class="p">,</span> <span class="n">truePositives</span><span class="p">,</span> <span class="s2">&quot;. FP: &quot;</span><span class="p">,</span> <span class="n">falsePositives</span><span class="p">,</span> <span class="s2">&quot;. TN: &quot;</span><span class="p">,</span>
+              <span class="n">trueNegatives</span><span class="p">,</span> <span class="s2">&quot;. FN: &quot;</span><span class="p">,</span> <span class="n">falseNegatives</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sensitivity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">truePositives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">truePositives</span> <span class="o">+</span> <span class="n">falseNegatives</span><span class="p">)</span>
+            <span class="n">specificity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">trueNegatives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">trueNegatives</span> <span class="o">+</span> <span class="n">falsePositives</span><span class="p">)</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">truePositives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">truePositives</span> <span class="o">+</span> <span class="n">falsePositives</span><span class="p">)</span>
+            <span class="n">negativePredictiveValue</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">trueNegatives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">trueNegatives</span> <span class="o">+</span> <span class="n">falseNegatives</span><span class="p">)</span>
+            <span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">truePositives</span> <span class="o">+</span> <span class="n">trueNegatives</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">truePositives</span> <span class="o">+</span> <span class="n">falseNegatives</span> <span class="o">+</span> <span class="n">trueNegatives</span> <span class="o">+</span> <span class="n">falsePositives</span>
+            <span class="p">)</span>
+
+            <span class="c1">#print(&quot;Sensitivity/Recall: &quot;, sensitivity, &quot;, Specificity: &quot;, specificity)</span>
+            <span class="c1">#print(&quot;Precision: &quot;, precision, &quot;, Negative Predictive Value: &quot;, negativePredictiveValue)</span>
+            <span class="c1">#print(&quot;Accuracy: &quot;, accuracy)</span>
+
+            <span class="n">tprList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sensitivity</span><span class="p">)</span>
+            <span class="n">fprList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">specificity</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error in calculating statistics&quot;</span><span class="p">)</span>
+
+    <span class="n">tprList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fprList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">tprList</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">tprList</span><span class="p">))</span>
+    <span class="n">fprList</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">fprList</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">tprList</span><span class="p">,</span> <span class="n">fprList</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="saveW"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.saveW">[docs]</a><span class="k">def</span> <span class="nf">saveW</span><span class="p">(</span><span class="n">W</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">__outputDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s2">&quot;W_Output&quot;</span><span class="p">),</span> <span class="n">W</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getWClusterPred"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.getWClusterPred">[docs]</a><span class="k">def</span> <span class="nf">getWClusterPred</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">):</span>
+    <span class="n">geneClustersSet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">geneClusters</span><span class="p">))</span>
+
+    <span class="n">W_cluster</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">geneClustersSet</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">clusterNum</span> <span class="ow">in</span> <span class="n">geneClustersSet</span><span class="p">:</span>
+            <span class="n">clusterPredictedRegSum</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">geneClusters</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">clusterNum</span> <span class="ow">and</span> <span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">clusterPredictedRegSum</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+            <span class="n">W_cluster</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">clusterNum</span><span class="p">]</span> <span class="o">=</span> <span class="n">clusterPredictedRegSum</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">W_cluster</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getWClusterReal"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.getWClusterReal">[docs]</a><span class="k">def</span> <span class="nf">getWClusterReal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">):</span>
+    <span class="n">geneClustersSet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">geneClusters</span><span class="p">))</span>
+
+    <span class="n">W_real_cluster</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">geneClustersSet</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">clusterNum</span> <span class="ow">in</span> <span class="n">geneClustersSet</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">geneClusters</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">clusterNum</span> <span class="ow">and</span> <span class="n">W_real</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">W_real_cluster</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">clusterNum</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">W_real_cluster</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getCVCost"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.getCVCost">[docs]</a><span class="k">def</span> <span class="nf">getCVCost</span><span class="p">(</span><span class="n">pseudotimeThresh</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">cvCellStates</span><span class="p">,</span> <span class="n">cvPseudotimes</span><span class="p">,</span>
+              <span class="n">cvCellTypesRecord</span><span class="p">):</span>
+    <span class="n">totalNumCellPairs</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">meanSquaredError</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="n">pseudotimeThresh</span>
+    <span class="n">cellPairs</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1">#Find these using pseudotime - can be made more efficient</span>
+
+    <span class="k">for</span> <span class="n">cellType</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">cvCellTypesRecord</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">cellsOfType</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cvCellTypesRecord</span> <span class="o">==</span> <span class="n">cellType</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cell1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">cellsOfType</span><span class="p">):</span>
+            <span class="n">pseudotime1</span> <span class="o">=</span> <span class="n">cvPseudotimes</span><span class="p">[</span><span class="n">cell1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">cell2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">cellsOfType</span><span class="p">):</span>
+                <span class="n">pseudotime2</span> <span class="o">=</span> <span class="n">cvPseudotimes</span><span class="p">[</span><span class="n">cell2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">pseudotime1</span> <span class="o">-</span> <span class="n">pseudotime2</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">pseudotimeThresh</span>
+                        <span class="ow">and</span> <span class="n">pseudotime1</span> <span class="o">&gt;</span> <span class="n">pseudotime2</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">cvCellStates</span><span class="p">[:,</span> <span class="n">cell1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cvCellStates</span><span class="p">[:,</span> <span class="n">cell2</span><span class="p">]</span>
+                               <span class="o">!=</span> <span class="mi">0</span><span class="p">)):</span>
+                        <span class="n">cellPairs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">cell1</span><span class="p">,</span> <span class="n">cell2</span><span class="p">])</span>
+    <span class="n">totalNumCellPairs</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">cellPairIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)):</span>
+        <span class="n">cellPair</span> <span class="o">=</span> <span class="n">cellPairs</span><span class="p">[</span><span class="n">cellPairIndex</span><span class="p">]</span>
+        <span class="n">cellIndex1</span> <span class="o">=</span> <span class="n">cellPair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cellIndex2</span> <span class="o">=</span> <span class="n">cellPair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Sc1</span> <span class="o">=</span> <span class="n">cvCellStates</span><span class="p">[:,</span> <span class="n">cellIndex1</span><span class="p">]</span>
+        <span class="n">Sc2</span> <span class="o">=</span> <span class="n">cvCellStates</span><span class="p">[:,</span> <span class="n">cellIndex2</span><span class="p">]</span>
+        <span class="n">derivative</span> <span class="o">=</span> <span class="p">(</span><span class="n">Sc1</span> <span class="o">-</span> <span class="n">Sc2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">cvPseudotimes</span><span class="p">[</span><span class="n">cellIndex1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cvPseudotimes</span><span class="p">[</span><span class="n">cellIndex2</span><span class="p">])</span>
+        <span class="n">actualValue</span> <span class="o">=</span> <span class="n">derivative</span> <span class="o">*</span> <span class="n">tau</span> <span class="o">+</span> <span class="n">Sc2</span>
+        <span class="n">predictedValue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">Sc2</span><span class="p">))</span>
+        <span class="n">errorSquared</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actualValue</span> <span class="o">-</span> <span class="n">predictedValue</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">meanSquaredError</span> <span class="o">+=</span> <span class="n">errorSquared</span>
+    <span class="n">meanSquaredError</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cellPairs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">meanSquaredError</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generateRandomW"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.generateRandomW">[docs]</a><span class="k">def</span> <span class="nf">generateRandomW</span><span class="p">(</span><span class="n">W</span><span class="p">):</span>
+    <span class="n">W_random</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">W_random</span><span class="p">)</span>
+    <span class="n">W_random</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">W_random</span><span class="p">)</span>
+    <span class="n">W_random</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">W_random</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plotWGraphs"><a class="viewcode-back" href="../../docs/source/RNAscrutiny.html#RNAscrutiny.RegNetInference.plotWGraphs">[docs]</a><span class="k">def</span> <span class="nf">plotWGraphs</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">W_real</span><span class="p">):</span>
+
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Inferred&#39;</span><span class="p">,</span> <span class="s1">&#39;Real&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">iW</span><span class="p">,</span> <span class="n">Wi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">W</span><span class="p">,</span> <span class="n">W_real</span><span class="p">]):</span>
+        <span class="n">geneGraph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">Wi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">geneGraph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">draw_random</span><span class="p">(</span><span class="n">geneGraph</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__outputDir</span><span class="p">,</span> <span class="s1">&#39;W_Graph_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="n">iW</span><span class="p">],</span> <span class="p">)))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container container-navbar-bottom">
+      <div class="spc-navbar">
+        
+      </div>
+    </div>
+    <div class="container">
+    <div class="footer">
+    <div class="row-fluid">
+    <ul class="inline pull-left">
+      <li>
+        &copy; Copyright 2017, Steffen K Cornwell, Joseph P McKenna, Vipul Periwal.
+      </li>
+      <li>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5.
+      </li>
+    </ul>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

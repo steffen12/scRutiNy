@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>Example Usage &mdash; scRutiNy 1.0 documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="_static/css/spc-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="_static/css/spc-extend.css">
+    <link rel="stylesheet" href="_static/scipy.css" type="text/css" >
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" >
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" >
+    <link rel="search" title="Search" href="search.html" >
+    <link rel="top" title="scRutiNy 1.0 documentation" href="index.html" >
+    <link rel="prev" title="scRutiNy Manual" href="README.html" > 
+  </head>
+  <body>
+
+  <div class="container">
+    <div class="header">
+    </div>
+  </div>
+
+
+    <div class="container">
+      <div class="main">
+        
+	<div class="row-fluid">
+	  <div class="span12">
+	    <div class="spc-navbar">
+              
+    <ul class="nav nav-pills pull-left">
+        <li class="active"><a href="https://lbm.niddk.nih.gov">LBM</a></li>
+        <li class="active"><a href="https://pypi.python.org/pypi/RNAscrutiny">scRutiNy</a></li>
+	
+        <li class="active"><a href="index.html">scRutiNy 1.0 documentation</a></li>
+	 
+    </ul>
+              
+              
+    <ul class="nav nav-pills pull-right">
+      <li class="active">
+        <a href="genindex.html" title="General Index"
+           accesskey="I">index</a>
+      </li>
+      <li class="active">
+        <a href="py-modindex.html" title="Python Module Index"
+           >modules</a>
+      </li>
+      <li class="active">
+        <a href="README.html" title="scRutiNy Manual"
+           accesskey="P">previous</a>
+      </li>
+    </ul>
+              
+	    </div>
+	  </div>
+	</div>
+        
+
+	<div class="row-fluid">
+      <div class="spc-rightsidebar span3">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="README.html"
+                        title="previous chapter">scRutiNy Manual</a></p>
+  <h3>This Page</h3>
+  <div>
+    <a href="_sources/example.rst.txt"
+       rel="nofollow">Show Source</a>
+  </div>
+<div class="this-page-menu">
+  <a href="/scipy/docs/scipy-docs/example.rst.rst">Edit page</a>
+</div>
+
+        </div>
+      </div>
+          <div class="span9">
+            
+        <div class="bodywrapper">
+          <div class="body" id="spc-section-body">
+            
+  <div class="section" id="example-usage">
+<h1>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># import the generative model module and initialize</span>
+<span class="c1"># the output directory is scRutiNy/MatriSeq by default</span>
+<span class="c1"># but can be specified by passing parameter outputDir to init</span>
+<span class="kn">import</span> <span class="nn">RNAscrutiny.MatriSeq</span> <span class="k">as</span> <span class="nn">ms</span>
+<span class="n">ms</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># generate gene correlation (gc) matrix</span>
+<span class="c1"># and transcription factors (tf) i.e. genes with positive outdegree</span>
+<span class="c1"># networkStructure should be one of</span>
+<span class="c1"># - &#39;SimulatedPowerLaw&#39;</span>
+<span class="c1"># - &#39;TRRUST&#39; (default)</span>
+<span class="c1"># - &#39;Random&#39;</span>
+<span class="c1"># optional parameters to generateGeneCorrleationMatrix:</span>
+<span class="c1"># - maxAlphaBeta (default: 10)</span>
+<span class="c1"># - normalizeWRows (default: False)</span>
+<span class="c1"># - powerLawExponent (default: 2.05)</span>
+<span class="c1"># - networkSparsity (default: 0.999)</span>
+<span class="n">networkStructure</span> <span class="o">=</span> <span class="s1">&#39;SimulatedPowerLaw&#39;</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">500</span>  <span class="c1"># number of genes</span>
+<span class="n">gc</span><span class="p">,</span> <span class="n">tf</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">generateGeneCorrelationMatrix</span><span class="p">(</span>
+    <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">networkStructure</span><span class="o">=</span><span class="n">networkStructure</span><span class="p">)</span>
+
+<span class="c1"># form a tree to represent cell types</span>
+<span class="n">cells</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">cellTypeTree</span><span class="p">,</span> <span class="n">projMatrix</span><span class="p">,</span> <span class="n">constMatrix</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">formCellTypeTree</span><span class="p">(</span>
+    <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+    <span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span>
+    <span class="n">cellTypeParents</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">cellTypeNumCells</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span>
+    <span class="n">cellTypeConstProps</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="n">transcriptionFactors</span><span class="o">=</span><span class="n">tf</span><span class="p">,</span>
+    <span class="n">cellTypeMeans</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+<span class="c1"># rescale gc to ensure convergence</span>
+<span class="c1"># optional paramters to finOptimalAlpha</span>
+<span class="c1"># - timeStep (default: 0.01)</span>
+<span class="c1"># - convergenceThreshold (default: 0.1)</span>
+<span class="c1"># - noiseDisp (default: 0.05)</span>
+<span class="c1"># - maxNumIterations (default: 500)</span>
+<span class="c1"># - convDistAvgNum (default: 20)</span>
+<span class="c1"># - initialAlpha (default: 0.01)</span>
+<span class="c1"># - alphaStep (default: 0.02)</span>
+<span class="c1"># - showAlphaGeneMeans (default: False)</span>
+<span class="c1"># - geneMeanLevels (default: 0)</span>
+<span class="n">initialStates</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">generateInitialStates</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">)</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">findOptimalAlpha</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">gc</span><span class="p">,</span> <span class="n">cellTypeTree</span><span class="p">,</span> <span class="n">initialStates</span><span class="p">,</span> <span class="n">numToSample</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">gc</span> <span class="o">/=</span> <span class="n">alpha</span>
+
+<span class="c1"># recurse over cell type tree to develop cells</span>
+<span class="c1"># optional parameters to findAllNextStates:</span>
+<span class="c1"># - timeStep (default: 0.01)</span>
+<span class="c1"># - noiseDisp (default: 0.05)</span>
+<span class="c1"># - convergenceThreshold (default: 0.1)</span>
+<span class="c1"># - maxNumIterations (default: 500)</span>
+<span class="c1"># - convDistAvgNum (default: 20)</span>
+<span class="c1"># - cellsToSample (default: 50)</span>
+<span class="c1"># - showPlots (default: False)</span>
+<span class="c1"># - cellDevelopmentMode (default: True)</span>
+<span class="c1"># - geneMeanLevels (default: 0)</span>
+<span class="n">currentStates</span> <span class="o">=</span> <span class="n">initialStates</span>
+<span class="n">cellTypesRecord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+<span class="n">totalCellIterations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+<span class="n">ms</span><span class="o">.</span><span class="n">findAllNextStates</span><span class="p">(</span><span class="n">gc</span><span class="p">,</span>
+                     <span class="n">cellTypeTree</span><span class="o">.</span><span class="n">head</span><span class="p">(),</span> <span class="n">cellTypeTree</span><span class="p">,</span> <span class="n">currentStates</span><span class="p">,</span>
+                     <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">totalCellIterations</span><span class="p">)</span>
+<span class="n">finalCellStates</span> <span class="o">=</span> <span class="n">currentStates</span>
+
+<span class="c1"># get cells&#39; final states, plot and save data</span>
+<span class="c1"># optional paramter to analyzeSCRNAseqData:</span>
+<span class="c1"># - perplexityParam (default: 30)</span>
+<span class="n">cellSizeFactors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span>
+<span class="n">timeStep</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">pseudotimes</span> <span class="o">=</span> <span class="n">timeStep</span> <span class="o">*</span> <span class="n">totalCellIterations</span>
+<span class="n">ms</span><span class="o">.</span><span class="n">analyzeDataBeforeTransformation</span><span class="p">(</span>
+    <span class="n">n</span><span class="p">,</span>
+    <span class="n">cells</span><span class="p">,</span>
+    <span class="n">finalCellStates</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="p">,</span>
+    <span class="n">pseudotimes</span><span class="p">,</span>
+    <span class="n">networkStructure</span><span class="o">=</span><span class="n">networkStructure</span><span class="p">)</span>
+<span class="n">finalCellStates</span><span class="p">,</span> <span class="n">cellSizeFactors</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">transformData</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">finalCellStates</span><span class="p">)</span>
+<span class="n">ms</span><span class="o">.</span><span class="n">analyzeSCRNAseqData</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">finalCellStates</span><span class="p">)</span>
+<span class="n">ms</span><span class="o">.</span><span class="n">saveData</span><span class="p">(</span><span class="n">finalCellStates</span><span class="p">,</span> <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">gc</span><span class="p">,</span> <span class="n">projMatrix</span><span class="p">,</span> <span class="n">constMatrix</span><span class="p">,</span>
+            <span class="n">cellSizeFactors</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">)</span>
+
+<span class="c1"># import inference module and initialize</span>
+<span class="c1"># by default, the output directory is RNAscrutiny/RegNetInference</span>
+<span class="c1"># but can be specified by passing parameter outputDir to init</span>
+<span class="c1"># init expects the input directory to be RNAscrutiny/MatriSeq</span>
+<span class="c1"># but can be specified by passing parameter inputDir to init</span>
+<span class="kn">import</span> <span class="nn">RNAscrutiny.RegNetInference</span> <span class="k">as</span> <span class="nn">rni</span>
+<span class="n">rni</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># load cell states from input directory</span>
+<span class="c1"># rescale pseudotime, smooth cell states,</span>
+<span class="c1"># plot gene expression over pseudotime</span>
+<span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">,</span> <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">W_real</span> <span class="o">=</span> <span class="n">rni</span><span class="o">.</span><span class="n">readCellStates</span><span class="p">(</span>
+<span class="p">)</span>
+<span class="n">pseudotimes</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pseudotimes</span><span class="p">)</span>
+<span class="n">cellStates</span> <span class="o">=</span> <span class="n">rni</span><span class="o">.</span><span class="n">smoothCellData</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">)</span>
+<span class="n">rni</span><span class="o">.</span><span class="n">plotGenesOverPseudotime</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">)</span>
+
+<span class="c1"># cluster genes</span>
+<span class="c1"># optional parameters to clusterGenes</span>
+<span class="c1"># - perplexity (default: 30)</span>
+<span class="c1"># - epsilon (default: 0.05)</span>
+<span class="c1"># - min_samples (default: 2)</span>
+<span class="n">geneClusters</span> <span class="o">=</span> <span class="n">rni</span><span class="o">.</span><span class="n">clusterGenes</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">)</span>
+
+<span class="c1"># find optimal gene correlation matrix W, save, and plot</span>
+<span class="c1"># optional parameters to crossValidateData:</span>
+<span class="c1"># - numPartitions (default: 5)</span>
+<span class="c1"># - alphaMin (default: 1e-4)</span>
+<span class="c1"># - alphaMax (default: 1e-3)</span>
+<span class="c1"># - alphaMultStep (default: 0.01)</span>
+<span class="c1"># - pseudotimeThresh (default: 0.1)</span>
+<span class="n">optW</span> <span class="o">=</span> <span class="n">rni</span><span class="o">.</span><span class="n">crossValidateData</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">cellStates</span><span class="p">,</span> <span class="n">pseudotimes</span><span class="p">,</span>
+                             <span class="n">cellTypesRecord</span><span class="p">,</span> <span class="n">W_real</span><span class="p">,</span> <span class="n">geneClusters</span><span class="p">)</span>
+<span class="n">rni</span><span class="o">.</span><span class="n">saveW</span><span class="p">(</span><span class="n">optW</span><span class="p">)</span>
+<span class="n">rni</span><span class="o">.</span><span class="n">plotWGraphs</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">optW</span><span class="p">,</span> <span class="n">W_real</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container container-navbar-bottom">
+      <div class="spc-navbar">
+        
+      </div>
+    </div>
+    <div class="container">
+    <div class="footer">
+    <div class="row-fluid">
+    <ul class="inline pull-left">
+      <li>
+        &copy; Copyright 2017, Steffen K Cornwell, Joseph P McKenna, Vipul Periwal.
+      </li>
+      <li>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5.
+      </li>
+    </ul>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

@@ -5,28 +5,30 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from tree import Tree
+from rpy2.robjects import r
+from rpy2.robjects.numpy2ri import numpy2ri
 
 __outputDir = None
 __verbose = None
 
 
-def init(outputDir='./RNAscrutiny-output', seed=1337, verbose=False):
+def init(outputDir='./scRutiNy/MatriSeq', seed=1337, verbose=True):
 
-    global __outputDir, verbose_
+    global __outputDir, __verbose
 
     # set output directory
     __outputDir = outputDir
     try:
         os.makedirs(outputDir)
     except:
-        raise Exception('Unable to create output directory.')
+        pass
 
     # seed random number generators
     np.random.seed(seed)
     random.seed(seed)
 
     # set verbosity
-    verbose_ = verbose
+    __verbose = verbose
 
 
 def generateGeneCorrelationMatrix(n,
@@ -162,7 +164,7 @@ def generateGeneCorrelationMatrix(n,
                          "_Network_Outdegree.tiff"))
         plt.close()
 
-    if verbose_:
+    if __verbose:
         print("Number of Connections: ", np.count_nonzero(networkMatrix))
         sparsityProportion = float(np.count_nonzero(networkMatrix)) / n**2
         print("Network Density: ", sparsityProportion)
@@ -487,7 +489,7 @@ def findOptimalAlpha(n,
         successRate = numSuccesses / numToSample
         avgIterations = int(avgIterations / numToSample)
         avgIterations = avgIterations - convDistAvgNum  #Subtract iterations where it is below convergence distance
-        if verbose_:
+        if __verbose:
             print("Alpha: ", alpha)
             print("Success Rate: ", successRate)
             print("Average Iterations: ", avgIterations)
@@ -634,7 +636,6 @@ def findOptimalIterations(n, gc, timeStep, cellTypeMembers, proj, const,
     convDistAvgNum :
     numToSample :
     """
-
     #Initialize variables (not to be changed)
     avgIterations = 0
     normDiffVals = [0] * maxNumIterations
@@ -670,7 +671,7 @@ def findOptimalIterations(n, gc, timeStep, cellTypeMembers, proj, const,
         avgIterations += cellIteration
     avgIterations = int(avgIterations / numToSample)
     avgIterations = avgIterations - convDistAvgNum  #Subtract iterations where it is below convergence distance
-    if verbose_:
+    if __verbose:
         print("Average Iterations: ", avgIterations)
     #xVals = [x for x in range(0, cellIteration)]
     #plt.scatter(xVals, normDiffVals[0:cellIteration])
@@ -748,7 +749,6 @@ def analyzeDataBeforeTransformation(n, cells, finalCellStates, alpha,
     pseudotimes :
     networkStructure :
     """
-
     randomGenes = np.random.randint(0, n, size=5)
 
     #What do you want to name the graphs?
@@ -796,7 +796,7 @@ def analyzeDataBeforeTransformation(n, cells, finalCellStates, alpha,
         plt.savefig(cellMeansString)
         plt.close()
 
-        if verbose_:
+        if __verbose:
             print("Random Genes Being Graphed: ", randomGenes)
 
         for randomGene in randomGenes:
@@ -928,7 +928,7 @@ def analyzeSCRNAseqData(n,
     pca = PCA(n_components=15)
     pcaFit = pca.fit(finalCellStates)
     pcaResult = pca.components_
-    if verbose_:
+    if __verbose:
         print("PCA Explained Var: ", pca.explained_variance_ratio_)
     if __outputDir is not None:
         np.save(
@@ -1030,3 +1030,36 @@ def plotSCRNAseqData(n, cells, cellStates, cellTypeString):
     plt.title("Num Expressed Genes")
     plt.savefig(os.path.join(__outputDir, numExpressedGenesString))
     plt.close()
+
+
+def saveData(synthscRNAseq, cellTypesRecord, gc, projMatrix, constMatrix,
+             cellSizeFactors, synthPseudotimes):
+    """Save data
+
+    Parameters
+    ----------
+    synthscRNAseq
+    cellTypesRecord
+    gc : ndarray(n,n)
+    projMatrix : ndarray(n,*)
+    constMatrix : ndarray(n,*)
+    cellSizeFactors
+    synthPseudotimes
+    """
+
+    itemsToSave = [
+        synthscRNAseq, cellTypesRecord, gc, projMatrix, constMatrix,
+        cellSizeFactors, synthPseudotimes
+    ]
+    itemNames = [
+        "synthscRNAseq", "cellTypesRecord", "gc", "projMatrix", "constMatrix",
+        "cellSizeFactors", "synthPseudotimes"
+    ]
+
+    for i in range(len(itemsToSave)):
+        np.save(os.path.join(__outputDir, itemNames[i]), itemsToSave[i])
+        np.save(os.path.join(__outputDir, itemNames[i]), itemsToSave[i])
+        ro = numpy2ri(itemsToSave[i])
+        r.assign(itemNames[i], ro)
+        rSaveString = "save(" + itemNames[i] + ", file='" + __outputDir + '/' + itemNames[i] + ".gzip', compress=TRUE)"
+        r(rSaveString)

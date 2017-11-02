@@ -4,10 +4,18 @@ RNAscrutiny package
 Submodules
 ----------
 
-RNAscrutiny\.RNAscrutiny module
--------------------------------
+RNAscrutiny\.MatriSeq module
+----------------------------
 
-.. automodule:: RNAscrutiny.RNAscrutiny
+.. automodule:: RNAscrutiny.MatriSeq
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+RNAscrutiny\.RegNetInference module
+-----------------------------------
+
+.. automodule:: RNAscrutiny.RegNetInference
     :members:
     :undoc-members:
     :show-inheritance:

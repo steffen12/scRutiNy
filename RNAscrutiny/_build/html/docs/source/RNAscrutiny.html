@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     
-    <title>RNAscrutiny package &mdash; RNAscrutiny 0.0 documentation</title>
+    <title>RNAscrutiny package &mdash; scRutiNy 1.0 documentation</title>
     
     <link rel="stylesheet" type="text/css" href="../../_static/css/spc-bootstrap.css">
     <link rel="stylesheet" type="text/css" href="../../_static/css/spc-extend.css">
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.0',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../../_static/js/copybutton.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" >
     <link rel="search" title="Search" href="../../search.html" >
-    <link rel="top" title="RNAscrutiny 0.0 documentation" href="../../index.html" > 
+    <link rel="top" title="scRutiNy 1.0 documentation" href="../../index.html" > 
   </head>
   <body>
 
@@ -46,9 +46,9 @@
               
     <ul class="nav nav-pills pull-left">
         <li class="active"><a href="https://lbm.niddk.nih.gov">LBM</a></li>
-        <li class="active"><a href="https://pypi.python.org/pypi/RNAscrutiny">RNAscrutiny</a></li>
+        <li class="active"><a href="https://pypi.python.org/pypi/RNAscrutiny">scRutiNy</a></li>
 	
-        <li class="active"><a href="../../index.html">RNAscrutiny 0.0 documentation</a></li>
+        <li class="active"><a href="../../index.html">scRutiNy 1.0 documentation</a></li>
 	 
     </ul>
               
@@ -76,7 +76,8 @@
   <ul>
 <li><a class="reference internal" href="#">RNAscrutiny package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-RNAscrutiny.RNAscrutiny">RNAscrutiny.RNAscrutiny module</a></li>
+<li><a class="reference internal" href="#module-RNAscrutiny.MatriSeq">RNAscrutiny.MatriSeq module</a></li>
+<li><a class="reference internal" href="#module-RNAscrutiny.RegNetInference">RNAscrutiny.RegNetInference module</a></li>
 <li><a class="reference internal" href="#module-RNAscrutiny.tree">RNAscrutiny.tree module</a></li>
 <li><a class="reference internal" href="#module-RNAscrutiny">Module contents</a></li>
 </ul>
@@ -104,11 +105,11 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-RNAscrutiny.RNAscrutiny">
-<span id="rnascrutiny-rnascrutiny-module"></span><h2>RNAscrutiny.RNAscrutiny module<a class="headerlink" href="#module-RNAscrutiny.RNAscrutiny" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-RNAscrutiny.MatriSeq">
+<span id="rnascrutiny-matriseq-module"></span><h2>RNAscrutiny.MatriSeq module<a class="headerlink" href="#module-RNAscrutiny.MatriSeq" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.addTreeChildren">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">addTreeChildren</code><span class="sig-paren">(</span><em>n</em>, <em>cellTypeTree</em>, <em>cellTypeParents</em>, <em>cellTypeMembers</em>, <em>cellTypeConstProps</em>, <em>projInit</em>, <em>constInit</em>, <em>projMatrix</em>, <em>constMatrix</em>, <em>cellTypeMeans</em>, <em>parentCellType</em>, <em>transcriptionFactors</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#addTreeChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.addTreeChildren" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.addTreeChildren">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">addTreeChildren</code><span class="sig-paren">(</span><em>n</em>, <em>cellTypeTree</em>, <em>cellTypeParents</em>, <em>cellTypeMembers</em>, <em>cellTypeConstProps</em>, <em>projInit</em>, <em>constInit</em>, <em>projMatrix</em>, <em>constMatrix</em>, <em>cellTypeMeans</em>, <em>parentCellType</em>, <em>transcriptionFactors</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#addTreeChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.addTreeChildren" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add children to tree</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -141,8 +142,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.analyzeDataBeforeTransformation">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">analyzeDataBeforeTransformation</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>finalCellStates</em>, <em>alpha</em>, <em>pseudotimes</em>, <em>networkStructure</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#analyzeDataBeforeTransformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.analyzeDataBeforeTransformation" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.analyzeDataBeforeTransformation">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">analyzeDataBeforeTransformation</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>finalCellStates</em>, <em>alpha</em>, <em>pseudotimes</em>, <em>networkStructure</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#analyzeDataBeforeTransformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.analyzeDataBeforeTransformation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyze data before transformation</p>
 <dl class="docutils">
 <dt>n <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
@@ -157,8 +158,8 @@ networkStructure :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.analyzeSCRNAseqData">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">analyzeSCRNAseqData</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellTypesRecord</em>, <em>finalCellStates</em>, <em>perplexityParam=30</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#analyzeSCRNAseqData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.analyzeSCRNAseqData" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.analyzeSCRNAseqData">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">analyzeSCRNAseqData</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellTypesRecord</em>, <em>finalCellStates</em>, <em>perplexityParam=30</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#analyzeSCRNAseqData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.analyzeSCRNAseqData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyze scRNA-seq data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -178,8 +179,8 @@ networkStructure :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.developCell">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">developCell</code><span class="sig-paren">(</span><em>n</em>, <em>gc</em>, <em>timeStep</em>, <em>initialState</em>, <em>proj</em>, <em>const</em>, <em>noiseDisp</em>, <em>geneMeanLevels</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#developCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.developCell" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.developCell">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">developCell</code><span class="sig-paren">(</span><em>n</em>, <em>gc</em>, <em>timeStep</em>, <em>initialState</em>, <em>proj</em>, <em>const</em>, <em>noiseDisp</em>, <em>geneMeanLevels</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#developCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.developCell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Equation to develop each cell for a time step</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -207,8 +208,8 @@ networkStructure :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.findAllNextStates">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">findAllNextStates</code><span class="sig-paren">(</span><em>gc</em>, <em>cellTypeNode</em>, <em>cellTypeTree</em>, <em>currentStates</em>, <em>cellTypesRecord</em>, <em>totalCellIterations</em>, <em>timeStep=0.01</em>, <em>noiseDisp=0.05</em>, <em>convergenceThreshold=0.1</em>, <em>maxNumIterations=500</em>, <em>convDistAvgNum=20</em>, <em>cellsToSample=50</em>, <em>showPlots=False</em>, <em>cellDevelopmentMode=True</em>, <em>geneMeanLevels=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#findAllNextStates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.findAllNextStates" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.findAllNextStates">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">findAllNextStates</code><span class="sig-paren">(</span><em>gc</em>, <em>cellTypeNode</em>, <em>cellTypeTree</em>, <em>currentStates</em>, <em>cellTypesRecord</em>, <em>totalCellIterations</em>, <em>timeStep=0.01</em>, <em>noiseDisp=0.05</em>, <em>convergenceThreshold=0.1</em>, <em>maxNumIterations=500</em>, <em>convDistAvgNum=20</em>, <em>cellsToSample=50</em>, <em>showPlots=False</em>, <em>cellDevelopmentMode=True</em>, <em>geneMeanLevels=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#findAllNextStates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.findAllNextStates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find all next states</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -229,8 +230,8 @@ networkStructure :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.findCellNextState">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">findCellNextState</code><span class="sig-paren">(</span><em>gc</em>, <em>n</em>, <em>timeStep</em>, <em>i</em>, <em>proj</em>, <em>const</em>, <em>initialState</em>, <em>cellIterations</em>, <em>noiseDisp</em>, <em>geneMeanLevels</em>, <em>showPlots</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#findCellNextState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.findCellNextState" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.findCellNextState">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">findCellNextState</code><span class="sig-paren">(</span><em>gc</em>, <em>n</em>, <em>timeStep</em>, <em>i</em>, <em>proj</em>, <em>const</em>, <em>initialState</em>, <em>cellIterations</em>, <em>noiseDisp</em>, <em>geneMeanLevels</em>, <em>showPlots</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#findCellNextState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.findCellNextState" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find cell’s next state</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -256,8 +257,8 @@ networkStructure :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.findOptimalAlpha">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">findOptimalAlpha</code><span class="sig-paren">(</span><em>n</em>, <em>gc</em>, <em>cellTypeTree</em>, <em>currentStates</em>, <em>numToSample</em>, <em>timeStep=0.01</em>, <em>convergenceThreshold=0.1</em>, <em>noiseDisp=0.05</em>, <em>maxNumIterations=500</em>, <em>convDistAvgNum=20</em>, <em>initialAlpha=0.01</em>, <em>alphaStep=0.02</em>, <em>showAlphaGeneMeans=False</em>, <em>geneMeanLevels=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#findOptimalAlpha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.findOptimalAlpha" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.findOptimalAlpha">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">findOptimalAlpha</code><span class="sig-paren">(</span><em>n</em>, <em>gc</em>, <em>cellTypeTree</em>, <em>currentStates</em>, <em>numToSample</em>, <em>timeStep=0.01</em>, <em>convergenceThreshold=0.1</em>, <em>noiseDisp=0.05</em>, <em>maxNumIterations=500</em>, <em>convDistAvgNum=20</em>, <em>initialAlpha=0.01</em>, <em>alphaStep=0.02</em>, <em>showAlphaGeneMeans=False</em>, <em>geneMeanLevels=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#findOptimalAlpha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.findOptimalAlpha" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find smallest <span class="math">\(alpha\)</span> large enough to allow convergence</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -290,8 +291,8 @@ networkStructure :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.findOptimalIterations">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">findOptimalIterations</code><span class="sig-paren">(</span><em>n</em>, <em>gc</em>, <em>timeStep</em>, <em>cellTypeMembers</em>, <em>proj</em>, <em>const</em>, <em>geneMeanLevels</em>, <em>convergenceThreshold</em>, <em>noiseDisp</em>, <em>currentStates</em>, <em>maxNumIterations</em>, <em>convDistAvgNum</em>, <em>numToSample</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#findOptimalIterations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.findOptimalIterations" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.findOptimalIterations">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">findOptimalIterations</code><span class="sig-paren">(</span><em>n</em>, <em>gc</em>, <em>timeStep</em>, <em>cellTypeMembers</em>, <em>proj</em>, <em>const</em>, <em>geneMeanLevels</em>, <em>convergenceThreshold</em>, <em>noiseDisp</em>, <em>currentStates</em>, <em>maxNumIterations</em>, <em>convDistAvgNum</em>, <em>numToSample</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#findOptimalIterations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.findOptimalIterations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find optimal iterations</p>
 <dl class="docutils">
 <dt>n <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
@@ -314,8 +315,8 @@ numToSample :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.formCellTypeTree">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">formCellTypeTree</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellTypeParents</em>, <em>cellTypeNumCells</em>, <em>cellTypeConstProps</em>, <em>transcriptionFactors</em>, <em>cellTypeMeans</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#formCellTypeTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.formCellTypeTree" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.formCellTypeTree">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">formCellTypeTree</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellTypeParents</em>, <em>cellTypeNumCells</em>, <em>cellTypeConstProps</em>, <em>transcriptionFactors</em>, <em>cellTypeMeans</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#formCellTypeTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.formCellTypeTree" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -348,8 +349,8 @@ numToSample :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.generateGeneCorrelationMatrix">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">generateGeneCorrelationMatrix</code><span class="sig-paren">(</span><em>n</em>, <em>networkStructure='TRRUST'</em>, <em>maxAlphaBeta=10</em>, <em>normalizeWRows=False</em>, <em>powerLawExponent=2.05</em>, <em>networkSparsity=0.999</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#generateGeneCorrelationMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.generateGeneCorrelationMatrix" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.generateGeneCorrelationMatrix">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">generateGeneCorrelationMatrix</code><span class="sig-paren">(</span><em>n</em>, <em>networkStructure='TRRUST'</em>, <em>maxAlphaBeta=10</em>, <em>normalizeWRows=False</em>, <em>powerLawExponent=2.05</em>, <em>networkSparsity=0.999</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#generateGeneCorrelationMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.generateGeneCorrelationMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate correlation matrix of gene regulatory network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -377,8 +378,8 @@ numToSample :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.generateInitialStates">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">generateInitialStates</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>sameInitialCell=True</em>, <em>geneMeanLevels=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#generateInitialStates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.generateInitialStates" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.generateInitialStates">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">generateInitialStates</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>sameInitialCell=True</em>, <em>geneMeanLevels=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#generateInitialStates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.generateInitialStates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate initial gene expression state</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -402,8 +403,8 @@ numToSample :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.getNextProjConst">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">getNextProjConst</code><span class="sig-paren">(</span><em>n</em>, <em>projInit</em>, <em>constInit</em>, <em>constProp</em>, <em>transcriptionFactors</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#getNextProjConst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.getNextProjConst" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.getNextProjConst">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">getNextProjConst</code><span class="sig-paren">(</span><em>n</em>, <em>projInit</em>, <em>constInit</em>, <em>constProp</em>, <em>transcriptionFactors</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#getNextProjConst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.getNextProjConst" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate new projection and constant vectors</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -430,13 +431,13 @@ numToSample :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.init">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">init</code><span class="sig-paren">(</span><em>outputDir='./RNAscrutiny-output'</em>, <em>seed=84578477</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.init" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.init">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">init</code><span class="sig-paren">(</span><em>outputDir='./scRutiNy/MatriSeq'</em>, <em>seed=1337</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.init" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.plotSCRNAseqData">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">plotSCRNAseqData</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellStates</em>, <em>cellTypeString</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#plotSCRNAseqData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.plotSCRNAseqData" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.plotSCRNAseqData">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">plotSCRNAseqData</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellStates</em>, <em>cellTypeString</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#plotSCRNAseqData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.plotSCRNAseqData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot scRNA-seq data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -455,8 +456,31 @@ numToSample :</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="RNAscrutiny.RNAscrutiny.transformData">
-<code class="descclassname">RNAscrutiny.RNAscrutiny.</code><code class="descname">transformData</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>finalCellStates</em>, <em>dropoutProportion=0.0</em>, <em>cellRadiusDisp=0.14</em>, <em>geneScale=0.0</em>, <em>expScale=1.0</em>, <em>expLambda=0.0</em>, <em>shape=0.35</em>, <em>rate=0.19</em>, <em>gammaDistMean=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RNAscrutiny.html#transformData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RNAscrutiny.transformData" title="Permalink to this definition">¶</a></dt>
+<dt id="RNAscrutiny.MatriSeq.saveData">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">saveData</code><span class="sig-paren">(</span><em>synthscRNAseq</em>, <em>cellTypesRecord</em>, <em>gc</em>, <em>projMatrix</em>, <em>constMatrix</em>, <em>cellSizeFactors</em>, <em>synthPseudotimes</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#saveData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.saveData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>synthscRNAseq</strong> – </li>
+<li><strong>cellTypesRecord</strong> – </li>
+<li><strong>gc</strong> (<em>ndarray</em><em>(</em><em>n</em><em>,</em><em>n</em><em>)</em>) – </li>
+<li><strong>projMatrix</strong> (<em>ndarray</em><em>(</em><em>n</em><em>,</em><em>*</em><em>)</em>) – </li>
+<li><strong>constMatrix</strong> (<em>ndarray</em><em>(</em><em>n</em><em>,</em><em>*</em><em>)</em>) – </li>
+<li><strong>cellSizeFactors</strong> – </li>
+<li><strong>synthPseudotimes</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.MatriSeq.transformData">
+<code class="descclassname">RNAscrutiny.MatriSeq.</code><code class="descname">transformData</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>finalCellStates</em>, <em>dropoutProportion=0.0</em>, <em>cellRadiusDisp=0.14</em>, <em>geneScale=0.0</em>, <em>expScale=1.0</em>, <em>expLambda=0.0</em>, <em>shape=0.35</em>, <em>rate=0.19</em>, <em>gammaDistMean=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/MatriSeq.html#transformData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.MatriSeq.transformData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -487,6 +511,104 @@ numToSample :</p>
 </tbody>
 </table>
 </dd></dl>
+
+</div>
+<div class="section" id="module-RNAscrutiny.RegNetInference">
+<span id="rnascrutiny-regnetinference-module"></span><h2>RNAscrutiny.RegNetInference module<a class="headerlink" href="#module-RNAscrutiny.RegNetInference" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.clusterGenes">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">clusterGenes</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellStates</em>, <em>perplexity=30</em>, <em>epsilon=0.05</em>, <em>min_samples=2</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#clusterGenes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.clusterGenes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.compareToRealW">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">compareToRealW</code><span class="sig-paren">(</span><em>n</em>, <em>W</em>, <em>W_real</em>, <em>geneClusters</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#compareToRealW"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.compareToRealW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.convertToS">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">convertToS</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellStates</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#convertToS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.convertToS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.crossValidateData">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">crossValidateData</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellStates</em>, <em>pseudotimes</em>, <em>cellTypesRecord</em>, <em>W_real</em>, <em>geneClusters</em>, <em>numPartitions=5</em>, <em>alphaMin=0.0001</em>, <em>alphaMax=0.001</em>, <em>alphaMultStep=0.01</em>, <em>pseudotimeThresh=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#crossValidateData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.crossValidateData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.findWMatrix">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">findWMatrix</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>W_real</em>, <em>cellStatesNew</em>, <em>cellTypesRecordNew</em>, <em>pseudotimeThresh</em>, <em>pseudotimesNew</em>, <em>alpha</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#findWMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.findWMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.generateRandomW">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">generateRandomW</code><span class="sig-paren">(</span><em>W</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#generateRandomW"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.generateRandomW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.getCVCost">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">getCVCost</code><span class="sig-paren">(</span><em>pseudotimeThresh</em>, <em>W</em>, <em>cvCellStates</em>, <em>cvPseudotimes</em>, <em>cvCellTypesRecord</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#getCVCost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.getCVCost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.getCorrelationMatrix">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">getCorrelationMatrix</code><span class="sig-paren">(</span><em>n</em>, <em>cells</em>, <em>cellStates</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#getCorrelationMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.getCorrelationMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.getWClusterPred">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">getWClusterPred</code><span class="sig-paren">(</span><em>n</em>, <em>W</em>, <em>geneClusters</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#getWClusterPred"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.getWClusterPred" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.getWClusterReal">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">getWClusterReal</code><span class="sig-paren">(</span><em>n</em>, <em>W_real</em>, <em>geneClusters</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#getWClusterReal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.getWClusterReal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.init">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">init</code><span class="sig-paren">(</span><em>inputDir='./scRutiNy/MatriSeq'</em>, <em>outputDir='./scRutiNy/RegNetInference'</em>, <em>seed=1337</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.lasso_regression">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">lasso_regression</code><span class="sig-paren">(</span><em>data</em>, <em>y_vals</em>, <em>alpha</em>, <em>models_to_plot={}</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#lasso_regression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.lasso_regression" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.plotGenesOverPseudotime">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">plotGenesOverPseudotime</code><span class="sig-paren">(</span><em>n</em>, <em>pseudotimes</em>, <em>cellStates</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#plotGenesOverPseudotime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.plotGenesOverPseudotime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.plotROCCurve">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">plotROCCurve</code><span class="sig-paren">(</span><em>n</em>, <em>W</em>, <em>W_real</em>, <em>geneClusters</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#plotROCCurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.plotROCCurve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.plotWGraphs">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">plotWGraphs</code><span class="sig-paren">(</span><em>n</em>, <em>W</em>, <em>W_real</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#plotWGraphs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.plotWGraphs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.readCellStates">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">readCellStates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#readCellStates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.readCellStates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.roc_metrics">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">roc_metrics</code><span class="sig-paren">(</span><em>n</em>, <em>geneClusters</em>, <em>W_real</em>, <em>W</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#roc_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.roc_metrics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.saveW">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">saveW</code><span class="sig-paren">(</span><em>W</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#saveW"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.saveW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="RNAscrutiny.RegNetInference.smoothCellData">
+<code class="descclassname">RNAscrutiny.RegNetInference.</code><code class="descname">smoothCellData</code><span class="sig-paren">(</span><em>cells</em>, <em>cellStates</em>, <em>pseudotimes</em>, <em>windowSize=30</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RNAscrutiny/RegNetInference.html#smoothCellData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RNAscrutiny.RegNetInference.smoothCellData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-RNAscrutiny.tree">

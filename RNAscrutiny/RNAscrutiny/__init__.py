@@ -1,2 +1,2 @@
 import MatriSeq
-# import RegNetInference
+import RegNetInference
