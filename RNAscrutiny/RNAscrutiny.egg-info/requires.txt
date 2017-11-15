@@ -1,0 +1,6 @@
+numpy
+matplotlib
+sklearn
+rpy2
+seaborn
+networkx

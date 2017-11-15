@@ -1,0 +1,14 @@
+MANIFEST.in
+README.rst
+setup.py
+RNAscrutiny/MatriSeq.py
+RNAscrutiny/RegNetInference.py
+RNAscrutiny/TRRUST_Network.npy
+RNAscrutiny/__init__.py
+RNAscrutiny/tree.py
+RNAscrutiny.egg-info/PKG-INFO
+RNAscrutiny.egg-info/SOURCES.txt
+RNAscrutiny.egg-info/dependency_links.txt
+RNAscrutiny.egg-info/not-zip-safe
+RNAscrutiny.egg-info/requires.txt
+RNAscrutiny.egg-info/top_level.txt

@@ -1,7 +1,7 @@
 # RNA-seq
 library("scater") #sce library
 library("scran")
-library("splatter")
+## library("splatter")
 #library("ccRemover")
 #library("RBGL")
 
